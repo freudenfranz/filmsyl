@@ -13,8 +13,13 @@ The initial setup.
 Create virtualenv and install the project:
 ```bash
 sudo apt-get install virtualenv python-pip python-dev
-deactivate; virtualenv ~/venv ; source ~/venv/bin/activate ;\
-    pip install pip -U; pip install -r requirements.txt
+#deactivate; virtualenv ~/venv ; source ~/venv/bin/activate ;\
+```
+```bash
+pyenv virtualenv films-you-like
+pyenv local films-you-like
+pyenv versions
+make install_requirements
 ```
 
 Unittest test:
