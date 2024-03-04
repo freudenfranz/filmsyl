@@ -17,7 +17,7 @@ seaborn
 
 # tests/linter
 #black
-#coverage
+coverage
 #flake8
 pytest
 #yapf

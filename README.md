@@ -12,7 +12,7 @@ The initial setup.
 
 Create virtualenv and install the project:
 ```bash
-sudo apt-get install virtualenv python-pip python-dev
+#sudo apt-get install virtualenv python-pip python-dev
 #deactivate; virtualenv ~/venv ; source ~/venv/bin/activate ;\
 ```
 ```bash
