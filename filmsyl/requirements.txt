@@ -46,3 +46,6 @@ uvicorn         # web server
 # tests
 httpx           # HTTP client
 pytest-asyncio  # asynchronous I/O support for pytest
+
+
+direnv
