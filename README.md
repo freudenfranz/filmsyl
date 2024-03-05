@@ -27,14 +27,14 @@ Unittest test:
 make clean install test
 ```
 
-Check for filmsyl in github.com/{group}. If your project is not set please add it:
+Check for filmsyl in github.com/freudenfranz. If your project is not set please add it:
 
-Create a new project on github.com/{group}/filmsyl
+Create a new project on [github.com/freundenfranz/filmsyl](https://github.com/freudenfranz/filmsyl)
 Then populate it:
 
 ```bash
 ##   e.g. if group is "{group}" and project_name is "filmsyl"
-git remote add origin git@github.com:{group}/filmsyl.git
+git remote add origin git@github.com:freudenfranz/filmsyl.git
 git push -u origin master
 git push -u origin --tags
 ```
@@ -56,16 +56,21 @@ setup you ssh public key, ...
 Create a python3 virtualenv and activate it:
 
 ```bash
-sudo apt-get install virtualenv python-pip python-dev
-deactivate; virtualenv -ppython3 ~/venv ; source ~/venv/bin/activate
+#sudo apt-get install virtualenv python-pip python-dev
+#deactivate; virtualenv -ppython3 ~/venv ; source ~/venv/bin/activate
+pyenv virtualenv films-you-like
+pyenv local films-you-like
+pyenv versions
 ```
 
 Clone the project and install it:
 
 ```bash
-git clone git@github.com:{group}/filmsyl.git
+cd ~/code/<username>
+git clone git@github.com:freudenfranz/filmsyl.git
 cd filmsyl
-pip install -r requirements.txt
+git checkout dev
+make install_requirements
 make clean install test                # install and test
 ```
 Functionnal test with a script:
@@ -75,4 +80,15 @@ cd
 mkdir tmp
 cd tmp
 filmsyl-run
+```
+
+# API
+
+## Routes
+
+base_url = ''
+```
+/cluster
+/get-recommendation
+/upload-netflix-history
 ```
