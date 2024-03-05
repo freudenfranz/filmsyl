@@ -14,6 +14,7 @@ pytest:
 # ----------------------------------
 
 install_requirements:
+	direnv allow
   @cd filmsyl
 	@make install_requirements
 	@cd ..
