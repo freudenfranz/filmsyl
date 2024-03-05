@@ -82,6 +82,10 @@ cd tmp
 filmsyl-run
 ```
 
+# Getting Started
+
+- change the environment variables in the filmsyl and filmsyl-frontend folders
+
 # API
 
 ## Routes
@@ -92,3 +96,18 @@ base_url = ''
 /get-recommendation
 /upload-netflix-history
 ```
+
+## Docker
+in case you want to test locally, change the image in Docker file and run
+```docker run -e PORT=8000 -p 8000:8000 --env-file your/path/to/.env $GAR_IMAGE:dev```
+
+for building the production environment:
+```docker build -t $GCP_REGION-docker.pkg.dev/$GCP_PROJECT/filmsyl/$GAR_IMAGE:prod .```
+.. and on a M1/M2 proecessor
+```docker build --platform linux/amd64 -t $GCP_REGION-docker.pkg.dev/$GCP_PROJECT/filmsyl/$GAR_IMAGE:prod .```
+
+to test the environment:
+```docker run -e PORT=8000 -p 8000:8000 --env-file .env $GCP_REGION-docker.pkg.dev/$GCP_PROJECT/filmsyl/$GAR_IMAGE:prod```
+
+to push the environment:
+``` docker push $GCP_REGION-docker.pkg.dev/$GCP_PROJECT/filmsyl/$GAR_IMAGE:prod```
