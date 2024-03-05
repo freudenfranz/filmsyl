@@ -4,9 +4,7 @@ pip>=24
 #twine
 #wheel>=0.29
 
-#python
-ipdb
-jupyterlab
+
 
 # data science
 numpy
@@ -35,10 +33,6 @@ google-cloud-storage
 #memoized-property
 #termcolor
 
-
-#Website:
-streamlit
-
 #API
 fastapi         # API framework
 pytz            # time zone management
@@ -46,6 +40,3 @@ uvicorn         # web server
 # tests
 httpx           # HTTP client
 pytest-asyncio  # asynchronous I/O support for pytest
-
-
-direnv
