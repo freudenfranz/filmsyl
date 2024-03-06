@@ -32,6 +32,9 @@ with netflix:
    st.header("A dog")
    st.image("https://static.streamlit.io/examples/dog.jpg", width=200)
 
+
+
+
 with cinemas:
    st.header("An owl")
    st.image("https://static.streamlit.io/examples/owl.jpg", width=200)
