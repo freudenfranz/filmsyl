@@ -4,9 +4,7 @@ pip>=24
 #twine
 #wheel>=0.29
 
-#python
-ipdb
-jupyterlab
+
 
 # data science
 numpy
@@ -34,10 +32,6 @@ google-cloud-storage
 #joblib
 #memoized-property
 #termcolor
-
-
-#Website:
-streamlit
 
 #API
 fastapi         # API framework

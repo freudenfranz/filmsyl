@@ -49,14 +49,14 @@ count_lines:
 	@echo ''
 
 # ----------------------------------
-#      UPLOAD PACKAGE TO PYPI
+#     PACKAGE AND UPLOAD TO GOOGLE CLOUD
 # ----------------------------------
-PYPI_USERNAME=<AUTHOR>
-build:
-	@python setup.py sdist bdist_wheel
-
-pypi_test:
-	@twine upload -r testpypi dist/* -u $(PYPI_USERNAME)
-
-pypi:
-	@twine upload dist/* -u $(PYPI_USERNAME)
+build_deploy:
+	@docker build --platform linux/amd64 -t \
+				${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/filmsyl/${GAR_IMAGE}:prod .
+	@docker push ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/filmsyl/${GAR_IMAGE}:prod \
+				--quiet
+	@gcloud run deploy --image \
+				${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/filmsyl/${GAR_IMAGE}:prod \
+				--memory ${GAR_MEMORY} --region ${GCP_REGION} \
+				--env-vars-file .env.yaml

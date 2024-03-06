@@ -4,7 +4,7 @@ from datetime import datetime
 from data_source import call_api
 
 #base_url = f'https://taxifare.lewagon.ai/predict'
-base_url = 'http://127.0.0.1:8000'
+base_url = 'https://films-you-like-2h7mcggcwa-ew.a.run.app'
 params = {}
 
 clusters = call_api(f'{base_url}/cluster', params)
