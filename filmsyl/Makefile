@@ -60,3 +60,10 @@ build_deploy:
 				${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/filmsyl/${GAR_IMAGE}:prod \
 				--memory ${GAR_MEMORY} --region ${GCP_REGION} \
 				--env-vars-file .env.yaml
+
+
+# ----------------------------------
+#     API
+# ----------------------------------
+run_api:
+	uvicorn api.fast:app --reload

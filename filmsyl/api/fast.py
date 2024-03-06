@@ -1,10 +1,11 @@
 import pandas as pd
 import numpy as np
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 #from taxifare.ml_logic.registry import load_model
 #from taxifare.ml_logic.preprocessor import preprocess_features
+from netflix.netflix import get_iMDb_from_json
 
 app = FastAPI()
 #app.state.model=load_model()
@@ -50,3 +51,15 @@ def root():
     return {
         'greeting': 'Hello'
 }
+
+
+@app.post("/upload-netflix")
+async def upload_nf(netflix_json: dict) -> dict :
+    try:
+        # Process the JSON data as needed
+        print(f"LOG: got netflix json:\n {netflix_json}")
+        iMDb_stats = get_iMDb_from_json(netflix_json)
+        app.state.matched_rows = iMDb_stats['matched_rows']
+        return iMDb_stats
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

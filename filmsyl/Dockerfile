@@ -9,6 +9,7 @@ RUN pip install -r requirements.txt
 
 #COPY: copy files and directories into our image (our package and the associated files, for example)
 COPY api api
+COPY netflix netflix
 COPY setup.py setup.py
 COPY scripts scripts
 
