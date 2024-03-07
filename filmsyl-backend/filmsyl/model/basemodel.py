@@ -6,32 +6,36 @@ import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.neighbors import NearestNeighbors
+from imdb import get_imdb_db
+
 
 #import IMDb movie csv
-csv = os.path.join("/home/lambert/filmsyl/filmsyl/raw_data", "imdb_movies.csv")
-imdb_df = pd.read_csv(csv)
+imdb_df = get_imdb_db()
 
 #import Netflix movie csv
-csv_ = os.path.join("/home/lambert/filmsyl/filmsyl/raw_data", "jakob_movies.csv")
-netflix_df = pd.read_csv(csv_)
+#csv_ = os.path.join("/home/lambert/filmsyl/filmsyl/raw_data", "jakob_movies.csv")
+#netflix_df = pd.read_csv(csv_)
 
 
-#combine imdb text features.
-imdb_df['text_features']= imdb_df['genres'] + ' ' + imdb_df['title'] + ' ' + imdb_df['Director']
-nan_count = imdb_df['text_features'].isna().sum()
+def join_text_features(imdb_df: pd.DataFrame) -> pd.DataFrame:
+    """combine imdb text features."""
+    imdb_df['text_features']= imdb_df['genres'] + ' ' + imdb_df['title'] + ' ' + imdb_df['Director']
+    nan_count = imdb_df['text_features'].isna().sum()
+    print(f"LOG: Nan count int text features: {nan_count}")
+    return imdb_df
 
 #drop NaN values total 70574
 netflix_df.dropna(subset=['text_features'], inplace=True)
 imdb_df.dropna(subset=['text_features'], inplace=True)
 
-# Initialize CountVectorizer
-vectorizer = CountVectorizer()
-
-# Fit and transform the text data for IMDb
-imdb_text_matrix = vectorizer.fit_transform(imdb_df['text_features'])
-
-# Fit and transform the text data for Netflix
-netflix_text_matrix = vectorizer.transform(netflix_df['text_features'])
+def vectorize(imdb_df: pd.DataFrame) -> CountVectorizer:
+    # Initialize CountVectorizer
+    vectorizer = CountVectorizer()
+    # Fit and transform the text data for IMDb
+    imdb_text_matrix = vectorizer.fit_transform(imdb_df['text_features'])
+    # Fit and transform the text data for Netflix
+    netflix_text_matrix = vectorizer.transform(netflix_df['text_features'])
+    return netflix_text_matrix
 
 knn_model = NearestNeighbors(n_neighbors=4, metric='cosine')
 knn_model.fit(imdb_text_matrix)
@@ -51,3 +55,5 @@ for i in range(len(netflix_df)):
 # Display the first 10 IMDb recommendations
 for netflix_title, imdb_title in imdb_recommendations[:5]:
     print(f"We recommends '{imdb_title}'")
+
+def get_recommendations(n: int, nf_history:pd.DataFrame, imdb_df: pd.DataFrame):
