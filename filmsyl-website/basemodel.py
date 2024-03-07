@@ -4,52 +4,40 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.neighbors import NearestNeighbors
-
 #import IMDb movie csv
 csv = os.path.join("/home/lambert/filmsyl/filmsyl/raw_data", "imdb_movies.csv")
 imdb_df = pd.read_csv(csv)
 imdb_df.replace({'\\N': np.nan, '': np.nan}, inplace=True)
-
 #import Netflix movie csv
 csv_ = os.path.join("/home/lambert/filmsyl/filmsyl/raw_data", "jakob_movies.csv")
 netflix_df = pd.read_csv(csv_)
 netflix_df.replace({'\\N': np.nan, '': np.nan}, inplace=True)
-
+netflix_df.dropna(inplace=True)
+imdb_df.dropna(inplace=True)
 #combine imdb text features.
-imdb_df['text_features']= imdb_df['genres'] + ' ' + imdb_df['title'] + ' ' + imdb_df['Director']
-nan_count = imdb_df['text_features'].isna().sum()
-
-#drop NaN values total 70574
-netflix_df.dropna(subset=['text_features'], inplace=True)
-imdb_df.dropna(subset=['text_features'], inplace=True)
-
+imdb_df['text_features']= imdb_df['genres'] + ' ' + imdb_df['Director']
+imdb_dfnew=imdb_df.drop(columns=['genres','Director','averageRating','titleId','startYear','numVotes','runtimeMinutes'])
+netflix_df['text_features'] = netflix_df['title'] + ' ' + netflix_df['genres'] + ' ' + netflix_df['Director']
+netflix_dfnew=netflix_df.drop(columns=['genres','Director','averageRating','titleId','startYear','numVotes','runtimeMinutes'])
 # Initialize CountVectorizer
-vectorizer = CountVectorizer()
-
+vectorizer = CountVectorizer(stop_words='english')
 # Fit and transform the text data for IMDb
 imdb_text_matrix = vectorizer.fit_transform(imdb_df['text_features'])
-
 # Fit and transform the text data for Netflix
 netflix_text_matrix = vectorizer.transform(netflix_df['text_features'])
-
-knn_model = NearestNeighbors(n_neighbors=4, metric='cosine')
+knn_model = NearestNeighbors(n_neighbors=5, metric='cosine')
 knn_model.fit(imdb_text_matrix)
+# Preprocess the text features of the new movie
+new_movie = "Drugs, and family James Wan "  # Example text features of the new movie
+new_movie_text_matrix = vectorizer.transform([new_movie])
 
-# Find nearest neighbors for Netflix data
-distances, indices = knn_model.kneighbors(netflix_text_matrix)
+# Nearest neighbors for the new movie
+distances, indices = knn_model.kneighbors(new_movie_text_matrix)
 
-imdb_recommendations = []  # Initialize an empty list to store IMDb recommendations
+# Get the indices of the nearest neighbors in the IMDb dataset
+nearest_neighbor_indices = indices[0]
 
-# Loop through each row in the DataFrame netflix_df
-for i in range(len(netflix_df)):
-    if len(indices[i]) > 1:  # Check if there are at least two neighbors
-        second_nearest_neighbor_index = indices[i][1]  # Get the index of the second closest neighbor for the current row
-        imdb_title = imdb_df.iloc[second_nearest_neighbor_index]['title']  # Retrieve the title from the IMDb DataFrame using the second nearest neighbor index
-        netflix_title = netflix_df.iloc[i]['title']  # Retrieve the title of the Netflix movie
-        imdb_recommendations.append((netflix_title, imdb_title))  # Append a tuple of Netflix title and IMDb recommendation
-
-# Display the first 10 IMDb recommendations
-for netflix_title, imdb_title in imdb_recommendations[:5]:
-    print(f"We recommends '{imdb_title}'")
+# Get the title of the suggested movie
+suggested_movie_title = imdb_df.iloc[nearest_neighbor_indices]['title'].values[0]
+print("IMDb Suggestion:", suggested_movie_title)
