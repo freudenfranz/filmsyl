@@ -33,7 +33,7 @@ google-cloud-storage
 #memoized-property
 #termcolor
 
-#API
+# API
 fastapi         # API framework
 pytz            # time zone management
 uvicorn         # web server

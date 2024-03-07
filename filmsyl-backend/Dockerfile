@@ -8,11 +8,9 @@ COPY requirements.txt /requirements.txt
 RUN pip install -r requirements.txt
 
 #COPY: copy files and directories into our image (our package and the associated files, for example)
-COPY api api
+COPY filmsyl filmsyl
 COPY setup.py setup.py
-COPY scripts scripts
-
-# We already have a make command for that!
+RUN pip install .
 
 #CMD: the main command that will be executed when we run our Docker image. There can only be one CMD instruction in a Dockerfile. It is usually the last instruction!
-CMD uvicorn api.fast:app --host 0.0.0.0 --port ${PORT}
+CMD uvicorn filmsyl.api.fast:app --host 0.0.0.0 --port ${PORT}
