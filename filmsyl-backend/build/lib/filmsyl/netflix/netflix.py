@@ -3,14 +3,15 @@ Cleans a Netflix history file (.txt) retrieved from the netlix settings
 from series and co. and finds all movies in the database of ours.
 """
 import pandas as pd
+from filmsyl.model.data import get_imdb
 
-def get_iMDb_from_json(nf: dict)->dict:
+def get_nf_imdb_matches(nf: dict)->dict:
     """
     Reads a iMDb dataset from file and compares incoming user netflix history
     to it.
     """
     nf_df = pd.DataFrame(nf)
-    imdb_df = pd.read_csv('data/imdb_movies.csv')
+    imdb_df = get_imdb()
     filtered_nf = filter_series_titles(nf_df)
     matched_nf = find_and_return_matches(filtered_nf, imdb_df)
     return matched_nf
@@ -33,7 +34,7 @@ def filter_series_titles(df):
     # Filter the DataFrame to select rows without series-related strings
     non_series_df = df_cleaned[~df_cleaned['Title'].str.contains(
         'Episode|Season|Seasons|Chapter|Series|Part', case=False)]
-
+    print("✅ removed series of nf")
     return non_series_df
 
 
@@ -54,7 +55,7 @@ def find_and_return_matches(non_series_df, imdb_df):
     total_non_series_films = len(non_series_df)
 
     # Find matches between non_series_df and df based on the 'Title' column
-    matches = non_series_df['Title'].isin(imdb_df['Title'])
+    matches = non_series_df['Title'].isin(imdb_df['primaryTitle'])
 
     # Count the number of matches
     matched_films = matches.sum()
@@ -63,7 +64,7 @@ def find_and_return_matches(non_series_df, imdb_df):
     percentage_matched = (matched_films / total_non_series_films) * 100
 
     # Select rows of df for which a match was found
-    matched_rows_df = imdb_df[imdb_df['Title'].isin(non_series_df.loc[matches, 'Title'])]
+    matched_rows_df = imdb_df[imdb_df['primaryTitle'].isin(non_series_df.loc[matches, 'Title'])]
 
     # Convert matched rows DataFrame to JSON
     matched_rows_json = matched_rows_df.to_dict(orient='records')
@@ -73,7 +74,7 @@ def find_and_return_matches(non_series_df, imdb_df):
         'percentage_matched': percentage_matched,
         'matched_rows': matched_rows_json
     }
-
+    print("✅ matched nf and imdb")
     return results
 
 # Example usage:
