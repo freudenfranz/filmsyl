@@ -42,11 +42,26 @@ def get_recommendations():
 
 @app.post("/get-recommendations")
 def upload_nf(netflix_json: dict) -> dict :
-    """route to upload and analyze netflix history"""
+    """
+    accepts:
+    Route accepts a json with location closeby to user and it's netflix history
+    containing  the columns 'Title' and 'Date'
+
+    returns:
+    statistical data on users watching habits
+    recommendations for cinemas/movies closeby running
+    recommendations for overall movies user could watch
+    """
     try:
-        # Process the JSON data as needed
-        #print(f"LOG: got netflix json:\n {netflix_json}")
+        #get subset of movies containing only movies from users netflix history
         iMDb_stats = get_nf_imdb_matches(netflix_json)
+
+        #get statistics on users watching habits
+
+        #get recommendations on movies user could watch from imdb list
+        #get currently running movies in closeby cinemas
+        #get recommendations for out of currently running movies in cinemas cb
+        #return all combined results
         app.state.matched_rows = iMDb_stats['matched_rows']
         if(app.state.matched_rows):
             print(f'app state saved: {app.state.matched_rows}')
