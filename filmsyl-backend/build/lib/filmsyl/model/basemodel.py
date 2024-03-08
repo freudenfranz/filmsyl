@@ -18,7 +18,7 @@ def join_text_features(imdb_df: pd.DataFrame) -> pd.DataFrame:
     #print(f"LOG: Nan count int text features: {nan_count}")
     return imdb_df
 
-def get_recommendations(amount: int, imdb_df: pd.DataFrame, netflix_df: pd.DataFrame) -> CountVectorizer:
+def get_rec(amount: int, imdb_df: pd.DataFrame, netflix_df: pd.DataFrame) -> CountVectorizer:
     """
     Get movie get_recommendations based on a imdb_database and a netflix history
     """
@@ -47,7 +47,8 @@ def get_recommendations(amount: int, imdb_df: pd.DataFrame, netflix_df: pd.DataF
     # Display the first [amount] IMDb recommendations
     for netflix_title, imdb_title in imdb_recommendations[:amount]:
         print(f"We recommend '{imdb_title}'")
-
+    #TODO
+    return imdb_df[:amount]
     return imdb_recommendations[:amount]
 
 if __name__ == '__main__':
