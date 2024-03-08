@@ -5,6 +5,22 @@ import numpy as np
 IMDB_PATH = os.environ.get("IMDB_PATH")
 IMDB_FILNAME = os.environ.get("IMDB_FILNAME")
 
+# parsing credentials needed for the movieglu api
+def parse_credentials():
+    credentials = []
+    i = 1
+    while True:
+        credential_key = f"CREDENTIALS_{i}"
+        credential_value = os.getenv(credential_key)
+        if credential_value is None:
+            break
+        credentials.append(tuple(credential_value.split(',')))
+        i += 1
+    return credentials
+
+MOVIEGLU_CREDENTIALS = parse_credentials()
+
+
 ##################  CONSTANTS  #####################
 #LOCAL_DATA_PATH = os.path.join(os.path.expanduser('~'), ".lewagon", "mlops", "data")
 #LOCAL_REGISTRY_PATH =  os.path.join(os.path.expanduser('~'), ".lewagon", "mlops", "training_outputs")

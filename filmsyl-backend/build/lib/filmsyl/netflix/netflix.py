@@ -3,7 +3,7 @@ Cleans a Netflix history file (.txt) retrieved from the netlix settings
 from series and co. and finds all movies in the database of ours.
 """
 import pandas as pd
-from filmsyl.model.data import get_imdb
+from filmsyl.data.data import get_imdb
 
 def get_nf_imdb_matches(nf: dict)->dict:
 
@@ -42,7 +42,6 @@ def filter_series_titles(df):
 
 
 ## 2. Match with iMDb DB, return enriched non_series_df (as a json) and percentage of matches
-
 def find_and_return_matches(non_series_df, imdb_df):
     """
     Find matches between non_series_df and df based on their titles and return the results as JSON.
@@ -81,9 +80,10 @@ def find_and_return_matches(non_series_df, imdb_df):
     print("✅ matched nf and imdb")
     return results
 
-# Example usage:
-# results = find_and_return_matches(non_series_df, imdb_df)
-# print(results)
+
 
 if __name__ == '__main__':
+    # Example usage:
+    # results = find_and_return_matches(non_series_df, imdb_df)
+    # print(results)
     print('hello world')
