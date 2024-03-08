@@ -31,15 +31,34 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     - assigning correct dtypes to each column
     - removing buggy or irrelevant transactions
     """
-    # Compress raw_data by setting types to DTYPES_RAW
-    #df = df.astype(DTYPES_RAW)
-
-    # Remove buggy transactions
-    #df = df.drop_duplicates()  # TODO: handle whether data is consumed in chunks directly in the data source
-    #df = df.dropna(how='any', axis=0)
     df.replace({'\\N': np.nan, '': np.nan}, inplace=True)
     df.dropna(inplace=True)
     nan_count = df.isna().sum().sum()
     assert nan_count == nan_count
     print("✅ data cleaned")
     return df
+
+def find_titles_in_imdb(titles: pd.Series, imdb_df: pd.DataFrame)->pd.DataFrame:
+    """
+    Finds Series of titles in imdb df and returns matching subset
+    """
+
+    return imdb_df[imdb_df['primaryTitle'].isin(titles.iloc[:])]
+
+if __name__ == '__main__':
+    mock = [
+    "Sex/Life: Season 1: Empire State of Mind",
+    "Spider-Man",
+    "The Old Guard",
+    "Trevor Noah: Afraid of the Dark",
+    "Trevor Noah: Son of Patricia",
+    "S.W.A.T.: Season 2: Kangaroo",
+    "S.W.A.T.: Season 2: Trigger Creep"]
+    imdb = get_imdb()
+    from filmsyl.netflix.netflix import clean_titles
+
+    cleaned = clean_titles(pd.DataFrame(mock))
+    print(cleaned)
+
+    found = find_titles_in_imdb(cleaned, imdb)
+    print(found)

@@ -52,6 +52,7 @@ def upload_nf(netflix_json: dict) -> dict :
     recommendations for cinemas/movies closeby running
     recommendations for overall movies user could watch
     """
+    print(netflix_json)
     try:
         #get subset of movies containing only movies from users netflix history
         iMDb_stats = get_nf_imdb_matches(netflix_json)
@@ -59,16 +60,20 @@ def upload_nf(netflix_json: dict) -> dict :
         #get statistics on users watching habits
 
         #get recommendations on movies user could watch from imdb list
+
         #get currently running movies in closeby cinemas
+
         #get recommendations for out of currently running movies in cinemas cb
         #return all combined results
-        app.state.matched_rows = iMDb_stats['matched_rows']
-        if(app.state.matched_rows):
-            print(f'app state saved: {app.state.matched_rows}')
+
         return iMDb_stats
     except Exception as e:
         raise exceptions.HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == '__main__':
+    netflix = pd.read_csv('./filmsyl/raw_data/NetflixViewingHistory.csv')
+    nf_dict=netflix.to_dict()
+    breakpoint()
+    upload_nf(netflix_json=nf_dict)
     print('running fast.py')
