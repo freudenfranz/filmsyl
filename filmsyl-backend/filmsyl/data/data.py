@@ -62,3 +62,15 @@ if __name__ == '__main__':
 
     found = find_titles_in_imdb(cleaned, imdb)
     print(found)
+
+{
+
+"Title":[
+  "Sniper: Ghost Shooter",
+  "Spectral"
+],
+"Date":[
+  "30/11/2023",
+  "30/11/2023"
+]
+}

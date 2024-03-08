@@ -103,7 +103,7 @@ if __name__ == '__main__':
     from filmsyl.data.data import read_imdb_csv
     netflix = pd.read_csv('./filmsyl/raw_data/NetflixViewingHistory.csv')
     imdb = get_imdb()
-
+    breakpoint()
     cleaned = clean_titles(pd.DataFrame(netflix)['Title'])
     found = find_titles_in_imdb(cleaned, imdb)
     print(found)

@@ -23,22 +23,6 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-@app.get("/recommendations")
-def get_recommendations():
-    """
-    get movie reccomendations from a previously uploaded netflix history file
-    """
-    imdb_df = get_imdb()
-    if(app.state.matched_rows):
-        print(app.state.matched_rows)
-        netflix_df = pd.DataFrame(app.state.matched_rows)
-        recommendations = get_rec(10,imdb_df=imdb_df, netflix_df=netflix_df)
-        print(recommendations)
-        return recommendations
-    else:
-        print("No netflix history uploded")
-        return exceptions.HTTPException(status_code=404, detail="no netflix history uploaded")
-
 
 @app.post("/get-recommendations")
 def upload_nf(netflix_json: dict) -> dict :
@@ -74,6 +58,6 @@ def upload_nf(netflix_json: dict) -> dict :
 if __name__ == '__main__':
     netflix = pd.read_csv('./filmsyl/raw_data/NetflixViewingHistory.csv')
     nf_dict=netflix.to_dict()
-    breakpoint()
+
     upload_nf(netflix_json=nf_dict)
     print('running fast.py')
