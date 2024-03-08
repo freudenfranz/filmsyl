@@ -16,6 +16,15 @@ def get_imdb(path: str=settings.IMDB_PATH,
     cleaned_imdb_db = clean_data(imdb_db)
     return cleaned_imdb_db
 
+def get_netflix_example():
+    """
+    Get example netflix history
+    """
+    csv = os.path.join(settings.IMDB_PATH, settings.NETFLIX_FILENAME)
+    netflix_df = clean_data(pd.read_csv(csv))
+    print("✅ netflix csv loaded")
+    return netflix_df
+
 def read_imdb_csv(path: str, filename: str)->pd.DataFrame:
     """
     Import IMDb movie csv

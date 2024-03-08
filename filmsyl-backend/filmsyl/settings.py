@@ -2,8 +2,9 @@ import os
 import numpy as np
 
 ##################  VARIABLES  ##################
-IMDB_PATH = os.environ.get("IMDB_PATH")
-IMDB_FILNAME = os.environ.get("IMDB_FILNAME")
+IMDB_PATH = os.path.join(os.path.dirname(__file__),'data')
+IMDB_FILNAME =  'final_and_clean_imdb.csv'
+NETFLIX_FILENAME = 'jakob_movies.csv'
 
 # parsing credentials needed for the movieglu api
 def parse_credentials():
