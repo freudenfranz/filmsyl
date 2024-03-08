@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.neighbors import NearestNeighbors
-from filmsyl.model.data import get_imdb
+from filmsyl.data.data import get_imdb
 from filmsyl.netflix.netflix import get_nf_imdb_matches
 
 
