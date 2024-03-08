@@ -12,6 +12,7 @@ def get_nf_imdb_matches(nf: dict)->dict:
     """
     nf_df = pd.DataFrame(nf)
     imdb_df = get_imdb()
+
     filtered_nf = filter_series_titles(nf_df)
     matched_nf = find_and_return_matches(filtered_nf, imdb_df)
     return matched_nf
@@ -34,6 +35,7 @@ def filter_series_titles(df):
     # Filter the DataFrame to select rows without series-related strings
     non_series_df = df_cleaned[~df_cleaned['Title'].str.contains(
         'Episode|Season|Seasons|Chapter|Series|Part', case=False)]
+
     print("✅ removed series of nf")
     return non_series_df
 
@@ -66,6 +68,7 @@ def find_and_return_matches(non_series_df, imdb_df):
     # Select rows of df for which a match was found
     matched_rows_df = imdb_df[imdb_df['primaryTitle'].isin(non_series_df.loc[matches, 'Title'])]
 
+
     # Convert matched rows DataFrame to JSON
     matched_rows_json = matched_rows_df.to_dict(orient='records')
 
@@ -75,6 +78,7 @@ def find_and_return_matches(non_series_df, imdb_df):
         'matched_rows': matched_rows_json
     }
     print("✅ matched nf and imdb")
+
     return results
 
 # Example usage:

@@ -3,6 +3,7 @@ API for films you like package.
 Paths:
     POST: /upload-netflix
 """
+
 from fastapi import FastAPI, exceptions
 from fastapi.middleware.cors import CORSMiddleware
 from filmsyl.netflix.netflix import get_nf_imdb_matches
@@ -55,3 +56,4 @@ def upload_nf(netflix_json: dict) -> dict :
 
 if __name__ == '__main__':
     print('running fast.py')
+

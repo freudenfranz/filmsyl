@@ -6,12 +6,14 @@ import pandas as pd
 from filmsyl.model.data import get_imdb
 
 def get_nf_imdb_matches(nf: dict)->dict:
+
     """
     Reads a iMDb dataset from file and compares incoming user netflix history
     to it.
     """
     nf_df = pd.DataFrame(nf)
     imdb_df = get_imdb()
+
     filtered_nf = filter_series_titles(nf_df)
     matched_nf = find_and_return_matches(filtered_nf, imdb_df)
     return matched_nf
@@ -35,6 +37,7 @@ def filter_series_titles(df):
     non_series_df = df_cleaned[~df_cleaned['Title'].str.contains(
         'Episode|Season|Seasons|Chapter|Series|Part', case=False)]
     print("✅ removed series of nf")
+
     return non_series_df
 
 
@@ -74,6 +77,7 @@ def find_and_return_matches(non_series_df, imdb_df):
         'percentage_matched': percentage_matched,
         'matched_rows': matched_rows_json
     }
+
     print("✅ matched nf and imdb")
     return results
 

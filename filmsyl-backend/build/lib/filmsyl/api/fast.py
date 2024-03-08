@@ -54,6 +54,7 @@ def upload_nf(netflix_json: dict) -> dict :
         # Process the JSON data as needed
         #print(f"LOG: got netflix json:\n {netflix_json}")
         iMDb_stats = get_nf_matches_from_iMDb(netflix_json)
+
         app.state.matched_rows = iMDb_stats['matched_rows']
         return iMDb_stats
     #except Exception as e:
