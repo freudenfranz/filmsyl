@@ -21,41 +21,63 @@ def get_nf_imdb_matches(nf: dict)->dict:
 
     return matched_nf
 
-def get_user_stats(non_series_df, matches: pd.DataFrame):
-     # Count the number of films in non_series_df
-    total_non_series_films = len(non_series_df)
-    # Count the number of matches
-    matched_films = len(matches)
 
-    # Calculate the percentage of films with a match
+def get_user_stats(df):
+    genres_count_dict = {}
+    directors_count_dict = {}
+    total_films_count = len(df)
 
-    percentage_matched = (matched_films / total_non_series_films) * 100
+    # Filling Na just in case
+    df['Director'] = df['Director'].fillna('')
+    df['genres'] = df['genres'].fillna('')
+
+    # Count genre occurrences
+    for genres_str in df['genres']:
+        genres_list = genres_str.split(',')
+
+        for genre in genres_list:
+            genre = genre.strip()
+            genres_count_dict[genre] = genres_count_dict.get(genre, 0) + 1
+
+    # Count director occurrences
+    for director_str in df['Director']:
+        directors_list = director_str.split(',')
+
+        for director in directors_list:
+            director = director.strip()
+            directors_count_dict[director] = directors_count_dict.get(director, 0) + 1
+
+    # Sort genre counts in descending order of frequency
+    genres_count_dict = dict(sorted(genres_count_dict.items(), key=lambda item: item[1], reverse=True))
+
+    # Sort director counts in descending order of frequency
+    directors_count_dict = dict(sorted(directors_count_dict.items(), key=lambda item: item[1], reverse=True))
+
     stats = {
-        "size_cleaned": total_non_series_films,
-        "matched_films": matched_films,
-        "percentage_matched": percentage_matched
+        'total_films_count': total_films_count,
+        'genres_count': genres_count_dict,
+        'directors_count': directors_count_dict
     }
 
     return stats
 
-def clean_titles(dirty_df: pd.Series)->pd.DataFrame:
+
+def clean_titles(dirty_series: pd.Series)->pd.DataFrame:
     """
     Filter the DataFrame to select rows containing series-related strings in the 'Title' column.
     Clean up (remove NaN and remove series)
 
     Parameters:
-        dirty_df (Series): The Titles to be filtered.
+        dirty_series (Series): The Titles to be filtered.
 
     Returns:
         DataFrame: Non-series-related titles.
     """
-    print(dirty_df.shape)
     # Drop rows with missing titles
-    df_cleaned = dirty_df.dropna()
+    df_cleaned = dirty_series.dropna()
 
     # Filter the DataFrame to select rows without series-related strings
-
-    non_series_df = df_cleaned[~df_cleaned.iloc[:].str.contains(
+    non_series_df = df_cleaned[~df_cleaned.str.contains(
                                 'Episode|Season|Seasons|Chapter|Series|Part',
                                 case=False
                             )]
@@ -88,7 +110,7 @@ def find_and_return_matches(non_series_df: pd.Series, imdb_df):
 
     matched_rows_json = matched_rows_df.to_dict(orient='records')
 
-    user_stats =  get_user_stats(non_series_df=non_series_df, matches=matches)
+    user_stats =  get_user_stats(non_series_df=non_series_df)
 
     # Create a dictionary containing the percentage of matches and information about the matched rows
     results = {
@@ -103,7 +125,7 @@ if __name__ == '__main__':
     from filmsyl.data.data import read_imdb_csv
     netflix = pd.read_csv('./filmsyl/raw_data/NetflixViewingHistory.csv')
     imdb = get_imdb()
-    breakpoint()
-    cleaned = clean_titles(pd.DataFrame(netflix)['Title'])
+
+    cleaned = clean_titles(netflix['Title'])
     found = find_titles_in_imdb(cleaned, imdb)
     print(found)
