@@ -3,14 +3,17 @@ Cleans a Netflix history file (.txt) retrieved from the netlix settings
 from series and co. and finds all movies in the database of ours.
 """
 import pandas as pd
+from filmsyl.model.data import get_imdb
 
-def get_iMDb_from_json(nf: dict)->dict:
+def get_nf_imdb_matches(nf: dict)->dict:
+
     """
     Reads a iMDb dataset from file and compares incoming user netflix history
     to it.
     """
     nf_df = pd.DataFrame(nf)
-    imdb_df = pd.read_csv('filmsyl/data/imdb_movies.csv')
+    imdb_df = get_imdb()
+
     filtered_nf = filter_series_titles(nf_df)
     matched_nf = find_and_return_matches(filtered_nf, imdb_df)
     return matched_nf
@@ -33,6 +36,7 @@ def filter_series_titles(df):
     # Filter the DataFrame to select rows without series-related strings
     non_series_df = df_cleaned[~df_cleaned['Title'].str.contains(
         'Episode|Season|Seasons|Chapter|Series|Part', case=False)]
+    print("✅ removed series of nf")
 
     return non_series_df
 
@@ -74,6 +78,7 @@ def find_and_return_matches(non_series_df, imdb_df):
         'matched_rows': matched_rows_json
     }
 
+    print("✅ matched nf and imdb")
     return results
 
 # Example usage:
