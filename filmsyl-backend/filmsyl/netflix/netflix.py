@@ -99,18 +99,16 @@ def find_and_return_matches(non_series_df: pd.Series, imdb_df):
         dict: A dictionary containing the percentage of matches and information about the matched rows.
     """
 
-    # Find matches between non_series_df and df based on the 'Title' column
-    matches = find_titles_in_imdb(non_series_df, imdb_df=imdb_df)
-
     # Select rows of df for which a match was found
     matched_rows_df = find_titles_in_imdb(non_series_df, imdb_df)
+
     #matched_rows_df = imdb_df[imdb_df['primaryTitle'].isin(non_series_df.loc[matches, 'Title'])]
 
     # Convert matched rows DataFrame to JSON
 
     matched_rows_json = matched_rows_df.to_dict(orient='records')
 
-    user_stats =  get_user_stats(non_series_df=non_series_df)
+    user_stats =  get_user_stats(df=matched_rows_df)
 
     # Create a dictionary containing the percentage of matches and information about the matched rows
     results = {
@@ -128,4 +126,5 @@ if __name__ == '__main__':
 
     cleaned = clean_titles(netflix['Title'])
     found = find_titles_in_imdb(cleaned, imdb)
+    find_and_return_matches(cleaned, imdb)
     print(found)
