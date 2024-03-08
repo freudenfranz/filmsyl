@@ -1,8 +1,10 @@
 from datetime import datetime
 import requests
-def get_api(base_url: str, params):
 
-    result =  requests.get(base_url, params=params)
+timeout = 6 #s
+def get_api(base_url: str, params):
+    """Wrapper for an api GET"""
+    result =  requests.get(base_url, params=params, timeout=timeout)
     print(result.url)
     if result.status_code < 300:
         json = result.json()
@@ -13,8 +15,8 @@ def get_api(base_url: str, params):
 
 
 def post_api(base_url: str, params, data):
-
-    result =  requests.post(base_url, params=params, data=data)
+    """Wrapper for an api post"""
+    result =  requests.post(base_url, params=params, data=data, timeout=timeout)
     print(result.url)
     if result.status_code < 300:
         json = result.json()

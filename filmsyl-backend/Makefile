@@ -66,4 +66,4 @@ build_deploy:
 #     API
 # ----------------------------------
 run_api:
-	uvicorn api.fast:app --reload
+	uvicorn filmsyl.api.fast:app --reload

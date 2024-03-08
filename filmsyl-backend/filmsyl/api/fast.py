@@ -10,10 +10,7 @@ from filmsyl.model.basemodel import get_rec
 from filmsyl.model.data import get_imdb
 import pandas as pd
 
-
-
 app = FastAPI()
-app.state.matched_rows = {}
 
 # Allowing all middleware is optional, but good practice for dev purposes
 app.add_middleware(
@@ -41,28 +38,20 @@ def get_recommendations():
         return exceptions.HTTPException(status_code=404, detail="no netflix history uploaded")
 
 
-@app.post("/upload-netflix")
+@app.post("/get-recommendations")
 def upload_nf(netflix_json: dict) -> dict :
-    #try:
+    """route to upload and analyze netflix history"""
+    try:
         # Process the JSON data as needed
         #print(f"LOG: got netflix json:\n {netflix_json}")
         iMDb_stats = get_nf_imdb_matches(netflix_json)
         app.state.matched_rows = iMDb_stats['matched_rows']
+        if(app.state.matched_rows):
+            print(f'app state saved: {app.state.matched_rows}')
         return iMDb_stats
-    #except Exception as e:
-        #raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise exceptions.HTTPException(status_code=500, detail=str(e))
 
-mock_nf = {
-  "Title": {
-    "0": "Uncharted",
-    "1": "The Punisher"
-  },
-  "Date": {
-    "0": "18\/02\/2024",
-    "1": "10\/02\/2024"
-  }
-}
 
 if __name__ == '__main__':
-    nf =  upload_nf(mock_nf)
-    print(nf)
+    print('running fast.py')
