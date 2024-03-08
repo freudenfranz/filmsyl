@@ -5,7 +5,7 @@ Paths:
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from filmsyl.netflix.netflix import get_iMDb_from_json
+from filmsyl.netflix.netflix import get_nf_matches_from_iMDb
 
 
 
@@ -53,7 +53,7 @@ def upload_nf(netflix_json: dict) -> dict :
     #try:
         # Process the JSON data as needed
         #print(f"LOG: got netflix json:\n {netflix_json}")
-        iMDb_stats = get_iMDb_from_json(netflix_json)
+        iMDb_stats = get_nf_matches_from_iMDb(netflix_json)
         app.state.matched_rows = iMDb_stats['matched_rows']
         return iMDb_stats
     #except Exception as e:

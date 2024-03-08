@@ -1,3 +1,5 @@
 # packaging
 streamlit
+streamlit_option_menus
 pylint
+requests
