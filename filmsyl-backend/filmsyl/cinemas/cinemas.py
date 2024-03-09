@@ -5,7 +5,7 @@ movies running in these cinemas.
 ## change lat, lng, territory for staging/production
 
 import os
-import json
+from filmsyl.settings import TIMEOUT
 from datetime import datetime, timedelta
 import requests
 
@@ -21,14 +21,14 @@ def get_running_movies_closeby(lat, lng, credentials):
             "client": "LEWA"
         }
 
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=TIMEOUT)
 
         # Check if the response is successful
         if response.status_code == 200:
             api_response = response.json()
             return api_response
         else:
-            return None
+            return f"Cinamas responded with code {response.status_code}"
 
     # Get tomorrow's date
     tomorrow_date = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
@@ -49,7 +49,7 @@ def get_running_movies_closeby(lat, lng, credentials):
             "client": "LEWA"
         }
 
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=TIMEOUT)
 
         # Check if the response is successful
         if response.status_code == 200:
@@ -68,15 +68,16 @@ def get_running_movies_closeby(lat, lng, credentials):
 
             return cinemas_info
         else:
+            print(f"Error. Cinema API returned status code {response.status_code} and reason {response.reason}")
             return None
 
     # Iterate over credentials
     for authorization, x_api_key in credentials:
         # Get nearby cinemas
         cinemas_info = get_nearby_cinemas(lat, lng, authorization, x_api_key)
-
         # If no cinemas are retrieved, proceed to the next credentials
         if cinemas_info is None:
+            print("Warning: No cinemas info found")
             continue
 
         # Dictionary to store show times for each cinema
@@ -113,13 +114,14 @@ def parse_credentials():
             break
         credentials.append(tuple(credential_value.split(',')))
         i += 1
+    if len(credentials) == 0:
+        print("ERROR: No cinema credentials found. Did you add them to your .env?")
     return credentials
 
 
 if __name__ == '__main__':
-    lat = "-22.0"
-    lng = "14.0"
+    lat =  str(52.50695915290848),
+    lng = str(13.39189042392227),
 
     result_dict = get_running_movies_closeby(lat, lng, parse_credentials())
     print(result_dict)
-

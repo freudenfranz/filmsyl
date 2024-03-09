@@ -5,15 +5,13 @@ from series and co. and finds all movies in the database of ours.
 import pandas as pd
 from filmsyl.data.data import get_imdb, find_titles_in_imdb
 
-def get_nf_imdb_matches(nf: dict)->dict:
+def get_nf_imdb_matches(nf_df: pd.DataFrame)->dict:
 
     """
     Reads a iMDb dataset from file and compares incoming user netflix history
     to it.
     """
     imdb_df = get_imdb()
-
-    nf_df = pd.DataFrame(nf)
 
     cleaned_df = clean_titles(nf_df['Title'])
 
@@ -28,8 +26,8 @@ def get_user_stats(df):
     total_films_count = len(df)
 
     # Filling Na just in case
-    df['Director'] = df['Director'].fillna('')
-    df['genres'] = df['genres'].fillna('')
+    df.loc[:, 'Director'] = df['Director'].fillna('')
+    df.loc[:, 'genres'] = df['genres'].fillna('')
 
     # Count genre occurrences
     for genres_str in df['genres']:

@@ -16,11 +16,11 @@ def get_rec(amount: int, imdb_df: pd.DataFrame, netflix_df: pd.DataFrame) -> pd.
     """
     Get movie get_recommendations based on a imdb_database and a netflix history
     """
-    imdb_df['text_features']= imdb_df['genres'] + ' ' + imdb_df['Director']+ ' ' + imdb_df['plot']
+    imdb_df['text_features'] = imdb_df['genres'] + ' ' + imdb_df['Director']+ ' ' + imdb_df['plot']
     #imdb_df_preprocess=imdb_df.drop(columns=['genres','Director','averageRating','titleId','startYear','numVotes','runtimeMinutes'])
 
-
-    netflix_df['text_features'] = netflix_df['title'] + ' ' + netflix_df['genres'] + ' ' + netflix_df['Director']
+    joined_nf = netflix_df['title'] + ' ' + netflix_df['genres'] + ' ' + netflix_df['Director']
+    netflix_df.loc[:,['text_features']] = joined_nf
     #netflix_df_preprocess=netflix_df.drop(columns=['genres','Director','averageRating','titleId','startYear','numVotes','runtimeMinutes'])
 
     #Define a TF-IDF Vectorizer Object. Remove all english stop words such as 'the', 'a'
@@ -49,11 +49,11 @@ def get_rec(amount: int, imdb_df: pd.DataFrame, netflix_df: pd.DataFrame) -> pd.
 
 
 if __name__ == '__main__':
-    imdb_df = get_imdb()
-    netflix_df = get_netflix_example()
-    cleaned_df = clean_titles(netflix_df['Title'])
-    matched_nf = find_titles_in_imdb(cleaned_df, imdb_df)
+    imdb_test_df = get_imdb()
+    netflix_test_df = get_netflix_example()
+    cleaned_df = clean_titles(netflix_test_df['Title'])
+    matched_nf = find_titles_in_imdb(cleaned_df, imdb_test_df)
 
     #netflix_df.replace({'\\N': np.nan, '': np.nan}, inplace=True)
-    output = get_rec(5,imdb_df,matched_nf)
+    output = get_rec(5,imdb_test_df,matched_nf)
     print(output)

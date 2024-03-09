@@ -1,0 +1,60 @@
+{
+  "location": {
+    "lat": 52.5068927,
+    "lng": 13.3564182
+  },
+  "netflix": [
+    {
+      "Title": "Code 8 Part II",
+      "Date": "03/03/2024"
+    },
+    {
+      "Title": "The Last Kingdom: Season 1: Episode 8",
+      "Date": "02/03/2024"
+    },
+    {
+      "Title": "Lift",
+      "Date": "26/01/2024"
+    },
+    {
+      "Title": "Interceptor",
+      "Date": "25/01/2024"
+    },
+    {
+      "Title": "Avatar The Last Airbender: Season 1: Spirited Away",
+      "Date": "26/02/2024"
+    },
+    {
+      "Title": "Avatar The Last Airbender: Season 1: Into the Dark",
+      "Date": "26/02/2024"
+    },
+    {
+      "Title": "Avatar The Last Airbender: Season 1: Omashu",
+      "Date": "26/02/2024"
+    },
+    {
+      "Title": "Avatar The Last Airbender: Season 1: Warriors",
+      "Date": "26/02/2024"
+    },
+    {
+      "Title": "Avatar The Last Airbender: Season 1: Aang",
+      "Date": "26/02/2024"
+    },
+    {
+      "Title": "The Punisher",
+      "Date": "10/02/2024"
+    },
+    {
+      "Title": "Cursed: Season 1: Nimue",
+      "Date": "10/02/2024"
+    },
+    {
+      "Title": "The Recruit: Season 1: I.C.I.N.C.",
+      "Date": "24/02/2024"
+    },
+    {
+      "Title": "Uncharted",
+      "Date": "18/02/2024"
+    }
+  ]
+}
