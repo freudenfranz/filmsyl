@@ -119,7 +119,7 @@ def find_and_return_matches(non_series_df: pd.Series, imdb_df):
 
 if __name__ == '__main__':
     from filmsyl.data.data import read_imdb_csv
-    netflix = pd.read_csv('./filmsyl/raw_data/NetflixViewingHistory.csv')
+    netflix = pd.read_csv('./filmsyl/data/NetflixViewingHistory.csv')
     imdb = get_imdb()
 
     cleaned = clean_titles(netflix['Title'])
