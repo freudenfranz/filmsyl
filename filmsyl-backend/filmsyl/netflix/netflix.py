@@ -5,15 +5,13 @@ from series and co. and finds all movies in the database of ours.
 import pandas as pd
 from filmsyl.data.data import get_imdb, find_titles_in_imdb
 
-def get_nf_imdb_matches(nf: dict)->dict:
+def get_nf_imdb_matches(nf_df: pd.DataFrame)->dict:
 
     """
     Reads a iMDb dataset from file and compares incoming user netflix history
     to it.
     """
     imdb_df = get_imdb()
-
-    nf_df = pd.DataFrame(nf)
 
     cleaned_df = clean_titles(nf_df['Title'])
 
@@ -28,8 +26,8 @@ def get_user_stats(df):
     total_films_count = len(df)
 
     # Filling Na just in case
-    df['Director'] = df['Director'].fillna('')
-    df['genres'] = df['genres'].fillna('')
+    df.loc[:, 'Director'] = df['Director'].fillna('')
+    df.loc[:, 'genres'] = df['genres'].fillna('')
 
     # Count genre occurrences
     for genres_str in df['genres']:
@@ -99,18 +97,16 @@ def find_and_return_matches(non_series_df: pd.Series, imdb_df):
         dict: A dictionary containing the percentage of matches and information about the matched rows.
     """
 
-    # Find matches between non_series_df and df based on the 'Title' column
-    matches = find_titles_in_imdb(non_series_df, imdb_df=imdb_df)
-
     # Select rows of df for which a match was found
     matched_rows_df = find_titles_in_imdb(non_series_df, imdb_df)
+
     #matched_rows_df = imdb_df[imdb_df['primaryTitle'].isin(non_series_df.loc[matches, 'Title'])]
 
     # Convert matched rows DataFrame to JSON
 
     matched_rows_json = matched_rows_df.to_dict(orient='records')
 
-    user_stats =  get_user_stats(non_series_df=non_series_df)
+    user_stats =  get_user_stats(df=matched_rows_df)
 
     # Create a dictionary containing the percentage of matches and information about the matched rows
     results = {
@@ -123,9 +119,10 @@ def find_and_return_matches(non_series_df: pd.Series, imdb_df):
 
 if __name__ == '__main__':
     from filmsyl.data.data import read_imdb_csv
-    netflix = pd.read_csv('./filmsyl/raw_data/NetflixViewingHistory.csv')
+    netflix = pd.read_csv('./filmsyl/data/NetflixViewingHistory.csv')
     imdb = get_imdb()
 
     cleaned = clean_titles(netflix['Title'])
     found = find_titles_in_imdb(cleaned, imdb)
+    find_and_return_matches(cleaned, imdb)
     print(found)

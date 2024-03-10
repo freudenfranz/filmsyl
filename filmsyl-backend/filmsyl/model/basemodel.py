@@ -1,60 +1,59 @@
 """
-Todo
+Base
 """
 
-import os
 import pandas as pd
 import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.neighbors import NearestNeighbors
-from filmsyl.data.data import get_imdb
-from filmsyl.netflix.netflix import get_nf_imdb_matches
+from sklearn.feature_extraction.text import TfidfVectorizer
+#Vectorization and similarity(linear kernel)
+from sklearn.metrics.pairwise import linear_kernel
+
+from filmsyl.data.data import get_imdb, get_netflix_example, find_titles_in_imdb
+from filmsyl.netflix.netflix import clean_titles
 
 
-def join_text_features(imdb_df: pd.DataFrame) -> pd.DataFrame:
-    """combine imdb text features."""
-    imdb_df['text_features']= imdb_df['genres'] + ' ' + imdb_df['title'] + ' ' + imdb_df['Director']
-    #nan_count = imdb_df['text_features'].isna().sum()
-    #print(f"LOG: Nan count int text features: {nan_count}")
-    return imdb_df
-
-def get_rec(amount: int, imdb_df: pd.DataFrame, netflix_df: pd.DataFrame) -> CountVectorizer:
+def get_rec(amount: int, imdb_df: pd.DataFrame, netflix_df: pd.DataFrame) -> pd.DataFrame:
     """
     Get movie get_recommendations based on a imdb_database and a netflix history
     """
-    # Initialize CountVectorizer
-    vectorizer = CountVectorizer()
-    # Fit and transform the text data for IMDb
-    imdb_text_matrix = vectorizer.fit_transform(imdb_df['text_features'])
-    # Transform the text data for Netflix
-    netflix_text_matrix = vectorizer.transform(netflix_df['text_features'])
+    imdb_df['text_features'] = imdb_df['genres'] + ' ' + imdb_df['Director']+ ' ' + imdb_df['plot']
+    #imdb_df_preprocess=imdb_df.drop(columns=['genres','Director','averageRating','titleId','startYear','numVotes','runtimeMinutes'])
 
-    knn_model = NearestNeighbors(n_neighbors=4, metric='cosine')
-    knn_model.fit(imdb_text_matrix)
+    joined_nf = netflix_df['title'] + ' ' + netflix_df['genres'] + ' ' + netflix_df['Director']
+    netflix_df.loc[:,['text_features']] = joined_nf
+    #netflix_df_preprocess=netflix_df.drop(columns=['genres','Director','averageRating','titleId','startYear','numVotes','runtimeMinutes'])
 
-    # Find nearest neighbors for Netflix data
-    distances, indices = knn_model.kneighbors(netflix_text_matrix)
+    #Define a TF-IDF Vectorizer Object. Remove all english stop words such as 'the', 'a'
+    tfidf = TfidfVectorizer(stop_words='english')
+    #Replace NaN with an empty string
+    imdb_df['text_features'] = imdb_df['text_features'].fillna('')
 
-    imdb_recommendations = []  # Initialize an empty list to store IMDb recommendations
+    tfidf_matrix = tfidf.fit_transform(imdb_df['text_features'])
 
-    # Loop through each row in the DataFrame netflix_df
-    for i in range(len(netflix_df)):
-        second_nearest_neighbor_index = indices[i][1]  # Get the index of the second closest neighbor for the current row
-        imdb_title = imdb_df.iloc[second_nearest_neighbor_index]['title']  # Retrieve the title from the IMDb DataFrame using the second nearest neighbor index
-        netflix_title = netflix_df.iloc[i]['title']  # Retrieve the title of the Netflix movie
-        imdb_recommendations.append((netflix_title, imdb_title))  # Append a tuple of Netflix title and IMDb recommendation
+    netflix_tfidf = tfidf.transform(netflix_df['text_features'])
+
+    #indices = pd.Series(imdb_df.index, index=imdb_df['primaryTitle']).drop_duplicates()
+
+    cosine_sim_netflix = linear_kernel(netflix_tfidf, tfidf_matrix)
+
+    mean_similarity = np.mean(cosine_sim_netflix, axis=0)
+
+    imdb_df['mean_similarity'] = mean_similarity
+
+    sorted_df = imdb_df.sort_values(by='mean_similarity', ascending=False)
+
+    # Return the top 'amount' movie titles as a Series
+    return sorted_df['primaryTitle'].head(amount)
 
     # Display the first [amount] IMDb recommendations
-    for netflix_title, imdb_title in imdb_recommendations[:amount]:
-        print(f"We recommend '{imdb_title}'")
-    #TODO
-    return imdb_df[:amount]
-    return imdb_recommendations[:amount]
+
 
 if __name__ == '__main__':
-    imdb_df = get_imdb()
-    csv_ = os.path.join("filmsyl/raw_data", "NetflixViewingHistory.csv")
-    netflix_df = pd.read_csv(csv_)
+    imdb_test_df = get_imdb()
+    netflix_test_df = get_netflix_example()
+    cleaned_df = clean_titles(netflix_test_df['Title'])
+    matched_nf = find_titles_in_imdb(cleaned_df, imdb_test_df)
+
     #netflix_df.replace({'\\N': np.nan, '': np.nan}, inplace=True)
-    nf_df = get_nf_imdb_matches(netflix_df)
-    print(nf_df)
+    output = get_rec(5,imdb_test_df,matched_nf)
+    print(output)

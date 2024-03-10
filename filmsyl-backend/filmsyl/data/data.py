@@ -16,6 +16,15 @@ def get_imdb(path: str=settings.IMDB_PATH,
     cleaned_imdb_db = clean_data(imdb_db)
     return cleaned_imdb_db
 
+def get_netflix_example():
+    """
+    Get example netflix history
+    """
+    csv = os.path.join(settings.IMDB_PATH, settings.NETFLIX_FILENAME)
+    netflix_df = clean_data(pd.read_csv(csv))
+    print("✅ netflix csv loaded")
+    return netflix_df
+
 def read_imdb_csv(path: str, filename: str)->pd.DataFrame:
     """
     Import IMDb movie csv
@@ -62,3 +71,15 @@ if __name__ == '__main__':
 
     found = find_titles_in_imdb(cleaned, imdb)
     print(found)
+
+{
+
+"Title":[
+  "Sniper: Ghost Shooter",
+  "Spectral"
+],
+"Date":[
+  "30/11/2023",
+  "30/11/2023"
+]
+}
