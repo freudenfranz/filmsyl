@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from streamlit_js_eval import get_geolocation
 
 API_ENDPOINT = "https://films-you-like-2h7mcggcwa-ew.a.run.app/get-recommendations"
+#API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 def display_netflix_history(response):
     """
@@ -63,41 +64,45 @@ def main():
 
     # Get geolocation
     geolocation = get_geolocation()
-    latitude = geolocation['coords']['latitude']
-    longitude = geolocation['coords']['longitude']
+    if geolocation:
+        latitude = geolocation['coords']['latitude']
+        longitude = geolocation['coords']['longitude']
 
-    # Allow user to upload a file
-    uploaded_file = st.file_uploader("To help us understand your taste, upload your Netflix history", type=['csv'])
 
-    if uploaded_file is not None:
-        # Read the uploaded CSV file
-        df = pd.read_csv(uploaded_file)
+        # Allow user to upload a file
+        uploaded_file = st.file_uploader("To help us understand your taste, upload your Netflix history", type=['csv'])
 
-        # Filter rows containing specified words in the "Title" column
-        filter_words = ["Episode", "Season", "Seasons", "Chapter", "Series", "Part"]
-        mask = df['Title'].str.contains('|'.join(filter_words), case=False, regex=True)
-        df = df[mask == False]
+        if uploaded_file is not None:
+            # Read the uploaded CSV file
+            df = pd.read_csv(uploaded_file)
 
-        # Format data according to API's expected JSON structure
-        netflix_data = df.to_dict(orient="records")
+            # Filter rows containing specified words in the "Title" column
+            filter_words = ["Episode", "Season", "Seasons", "Chapter", "Series", "Part"]
+            mask = df['Title'].str.contains('|'.join(filter_words), case=False, regex=True)
+            df = df[mask == False]
 
-        # Display a spinner while waiting for the API response
-        st.markdown("<br><br><br>", unsafe_allow_html=True)  # Add some space before the spinner
-        with st.spinner("We are trying to understand your weird taste..."):
-            # Send data to API and get response
-            response = send_to_api(netflix_data, latitude, longitude)
+            # Format data according to API's expected JSON structure
+            netflix_data = df.to_dict(orient="records")
+
+            # Display a spinner while waiting for the API response
+            st.markdown("<br><br><br>", unsafe_allow_html=True)  # Add some space before the spinner
+            with st.spinner("We are trying to understand your weird taste..."):
+                # Send data to API and get response
+                response = send_to_api(netflix_data, latitude, longitude)
+                # Display "scroll down" message with grey triangle pointing down
+                st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
+                st.markdown("<p style='text-align: center; font-size: 20px; color: #808080;'>Scroll down</p>", unsafe_allow_html=True)
+                st.markdown("<div style='text-align: center;'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50' fill='#808080'><path d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/><path fill='none' d='M0 0h24v24H0z'/></svg></div>", unsafe_allow_html=True)
+
+            # Display Netflix history
+            display_netflix_history(response)
+
             # Display "scroll down" message with grey triangle pointing down
             st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
             st.markdown("<p style='text-align: center; font-size: 20px; color: #808080;'>Scroll down</p>", unsafe_allow_html=True)
             st.markdown("<div style='text-align: center;'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50' fill='#808080'><path d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/><path fill='none' d='M0 0h24v24H0z'/></svg></div>", unsafe_allow_html=True)
-
-        # Display Netflix history
-        display_netflix_history(response)
-
-        # Display "scroll down" message with grey triangle pointing down
-        st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
-        st.markdown("<p style='text-align: center; font-size: 20px; color: #808080;'>Scroll down</p>", unsafe_allow_html=True)
-        st.markdown("<div style='text-align: center;'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50' fill='#808080'><path d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/><path fill='none' d='M0 0h24v24H0z'/></svg></div>", unsafe_allow_html=True)
+    else:
+        st.warning('Please allow geolocation for this to work', icon="⚠️")
 
 def send_to_api(netflix_data, latitude, longitude):
     payload = {
