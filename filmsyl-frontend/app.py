@@ -3,6 +3,10 @@ import pandas as pd
 import requests
 import plotly.graph_objects as go
 from streamlit_js_eval import get_geolocation
+import json
+import folium
+from folium.plugins import MarkerCluster
+from streamlit_folium import folium_static
 
 API_ENDPOINT = "https://films-you-like-2h7mcggcwa-ew.a.run.app/get-recommendations"
 
@@ -56,7 +60,110 @@ def display_netflix_history(response):
 
     col2.plotly_chart(fig)
 
+def create_map(latitude, longitude, cinemas_info):
+    # Create a map centered around the provided latitude and longitude
+    m = folium.Map(location=[latitude, longitude], zoom_start=10, tiles=None)
+
+    # Add the CartoDB Positron tile layer
+    folium.TileLayer('cartodbpositron').add_to(m)
+
+    # Add a marker for your location
+    folium.Marker(location=[latitude, longitude], popup='Your Location',
+                  icon=folium.Icon(color='red')).add_to(m)
+
+    # Keep track of cinemas to avoid duplicates
+    added_cinemas = set()
+
+    # Add markers for each cinema
+    for cinema in cinemas_info:
+        cinema_key = (cinema['Cinema Latitude'], cinema['Cinema Longitude'])
+        if cinema_key not in added_cinemas:
+            folium.Marker(location=[cinema['Cinema Latitude'], cinema['Cinema Longitude']],
+                          popup=cinema['Cinema Name']).add_to(m)
+            added_cinemas.add(cinema_key)
+
+    # Calculate bounds of all markers
+    bounds = [[latitude, longitude]]
+    for cinema in cinemas_info:
+        bounds.append([cinema['Cinema Latitude'], cinema['Cinema Longitude']])
+
+    # Fit map to bounds
+    m.fit_bounds(bounds)
+
+    # Display the map
+    folium_static(m)
+
+
+
+
+
 def main():
+    # Initialise latitude and longitude
+    latitude = -22.0
+    longitude = 14.0
+
+    # Load JSON file
+    with open('combined_output.json', 'r') as f:
+        data = json.load(f)
+
+
+    # Title before map
+    st.markdown("<h1 style='text-align: center;'>Two cinemas near your show films you will love!</h1>", unsafe_allow_html=True)
+
+    cinemas_info = data["showings"]
+
+    # Create the map
+    create_map(latitude, longitude, cinemas_info)
+
+    # Keep track of films already visualized
+    visualized_films = set()
+
+    # Iterate over films and visualize the first 5 unique films
+    for film in data["showings"]:
+        # Check if the film has already been visualized
+        if film['Film Name'] not in visualized_films:
+            # Add film to the set of visualized films
+            visualized_films.add(film['Film Name'])
+
+            with open('style.css') as f:
+                st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+            # Define layout
+            left_column, right_column = st.columns([1, 3])
+
+            # Display smaller image of the film on the left side
+            left_column.image(film["Poster"], width=100)
+
+            # Display other details on the right side
+            right_column.metric(film['Film Director'], film['Film Name'])
+            right_column.write(f"<span style='color: darkgrey'>{film['Film Genre']} ‧ {film['Film Rating']}</span>", unsafe_allow_html=True)
+            right_column.write(f"<span style='color: darkgrey; margin-bottom: 10px'>{film['Film Duration']}</span>", unsafe_allow_html=True)
+
+            # Add space between films
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # Display screening information for this film
+            for screening in data["showings"]:
+                if screening['Film Name'] == film['Film Name']:
+                    # Display cinema name and distance aligned to left, with cinema name in bold
+                    st.write(f"<div style='display: flex; justify-content: space-between;'>"
+                                f"<b>{screening['Cinema Name']}</b> {screening['Cinema Distance']:.2f} meters"
+                                f"<div style='text-align: right;'>"
+                                f"{screening['Start Time']}"
+                                f"</div>"
+                                f"</div>", unsafe_allow_html=True)
+                    st.markdown("<br>", unsafe_allow_html=True)
+
+            # Add space between films
+            st.markdown("<br>", unsafe_allow_html=True)
+
+        # Check if 5 unique films have been visualized
+        if len(visualized_films) >= 5:
+            break
+
+
+
+def main_2():
     # Centered title
     st.markdown("<h1 style='text-align: center;'>Ready to find films you like screening near you?</h1>", unsafe_allow_html=True)
     st.markdown("<h6 style='text-align: center; color: #808080; '>Upload your Netflix history and decide when and where to go to the cinema</h6>", unsafe_allow_html=True)
