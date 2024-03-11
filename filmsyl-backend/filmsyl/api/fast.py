@@ -35,7 +35,7 @@ class Location(BaseModel):
     """Location object constisting of latittude and longitude"""
     lat: float
     lng: float
-    countrycode: str|None
+    countrycode: Union[str, None]
 
 
 class NetflixHistory(BaseModel):
@@ -48,7 +48,7 @@ class RecommendationBody(BaseModel):
     Descriptor for post request body
     """
     location: Location
-    cinemacount: int|None
+    cinemacount: Union[int, None]
     netflix: List[NetflixHistory]
 
 @app.post("/get-recommendations")
