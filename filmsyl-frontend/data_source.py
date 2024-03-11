@@ -12,7 +12,7 @@ def get_api(base_url: str, params):
     else:
         print(f'Api call returned with code {result.status_code}')
 
-
+'''
 
 def post_api(base_url: str, params, data):
     """Wrapper for an api post"""
@@ -23,3 +23,5 @@ def post_api(base_url: str, params, data):
         return json
     else:
         print(f'Api call returned with code {result.status_code}')
+
+'''
