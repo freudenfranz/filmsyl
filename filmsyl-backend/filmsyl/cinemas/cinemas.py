@@ -9,7 +9,7 @@ from filmsyl.settings import TIMEOUT
 from datetime import datetime, timedelta
 import requests
 
-def get_running_movies_closeby(lat, lng, credentials):
+def get_running_movies_closeby(lat:float, lng:float, credentials):
     def get_show_times(cinema_id, date, device_datetime, authorization, x_api_key):
         url = f"https://api-gate2.movieglu.com/cinemaShowTimes/?cinema_id={cinema_id}&date={date}&sort=popularity"
         headers = {
@@ -36,19 +36,19 @@ def get_running_movies_closeby(lat, lng, credentials):
     # Set device datetime
     device_datetime = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
-    def get_nearby_cinemas(lat, lng, authorization, x_api_key):
+    def get_nearby_cinemas(latitude: float, longitude:float, authorization, x_api_key):
         url = "https://api-gate2.movieglu.com/cinemasNearby/?n=2"
-
+        location = f"{str(latitude[0])};{str(longitude[0])}"
         headers = {
             "api-version": "v200",
             "Authorization": authorization,
             "x-api-key": x_api_key,
             "device-datetime": device_datetime,
-            "geolocation": f"{lat};{lng}",
+            "geolocation": location,
             "territory": "XX",
             "client": "LEWA"
         }
-
+        print(headers)
         response = requests.get(url, headers=headers, timeout=TIMEOUT)
 
         # Check if the response is successful
@@ -120,8 +120,8 @@ def parse_credentials():
 
 
 if __name__ == '__main__':
-    lat =  str(52.50695915290848),
-    lng = str(13.39189042392227),
+    lat =  -22.0,
+    lng = 14.0,
 
     result_dict = get_running_movies_closeby(lat, lng, parse_credentials())
     print(result_dict)
