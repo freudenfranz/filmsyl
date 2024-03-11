@@ -68,7 +68,6 @@ def main():
         latitude = geolocation['coords']['latitude']
         longitude = geolocation['coords']['longitude']
 
-
         # Allow user to upload a file
         uploaded_file = st.file_uploader("To help us understand your taste, upload your Netflix history", type=['csv'])
 
@@ -102,7 +101,7 @@ def main():
             st.markdown("<p style='text-align: center; font-size: 20px; color: #808080;'>Scroll down</p>", unsafe_allow_html=True)
             st.markdown("<div style='text-align: center;'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50' fill='#808080'><path d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/><path fill='none' d='M0 0h24v24H0z'/></svg></div>", unsafe_allow_html=True)
     else:
-        st.warning('Please allow geolocation for this to work', icon="⚠️")
+        st.warning("Please allow geolocation for this app to work")
 
 def send_to_api(netflix_data, latitude, longitude):
     payload = {
@@ -113,7 +112,9 @@ def send_to_api(netflix_data, latitude, longitude):
         "netflix": netflix_data
     }
 
+    #if payload["location"]["lat"] is not None:
     payload["location"]["lat"] = float(payload["location"]["lat"])
+    #if payload["location"]["lng"] is not None:
     payload["location"]["lng"] = float(payload["location"]["lng"])
 
     response = requests.post(API_ENDPOINT, json=payload)
