@@ -3,3 +3,7 @@ streamlit
 streamlit_option_menus
 pylint
 requests
+streamlit_js_eval
+pandas
+plotly
+streamlit_js_eval
