@@ -9,18 +9,23 @@ from filmsyl.settings import TIMEOUT
 from datetime import datetime, timedelta
 import requests
 
-def get_running_movies_closeby(lat:float, lng:float, credentials):
-    def get_show_times(cinema_id, date, device_datetime, authorization, x_api_key):
+def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"):
+    def get_show_times(cinema_id,
+                       date,
+                       device_datetime,
+                       authorization,
+                       x_api_key,
+                       territory="XX"):
         url = f"https://api-gate2.movieglu.com/cinemaShowTimes/?cinema_id={cinema_id}&date={date}&sort=popularity"
         headers = {
             "api-version": "v200",
             "Authorization": authorization,
             "x-api-key": x_api_key,
             "device-datetime": device_datetime,
-            "territory": "XX",
+            "date": date,
+            "territory": territory,
             "client": "LEWA"
         }
-
         response = requests.get(url, headers=headers, timeout=TIMEOUT)
 
         # Check if the response is successful
@@ -36,7 +41,7 @@ def get_running_movies_closeby(lat:float, lng:float, credentials):
     # Set device datetime
     device_datetime = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
-    def get_nearby_cinemas(latitude: float, longitude:float, authorization, x_api_key):
+    def get_nearby_cinemas(latitude: float, longitude:float, authorization, x_api_key, territory="XX"):
         url = "https://api-gate2.movieglu.com/cinemasNearby/?n=2"
         location = f"{str(latitude)};{str(longitude)}"
         headers = {
@@ -44,8 +49,8 @@ def get_running_movies_closeby(lat:float, lng:float, credentials):
             "Authorization": authorization,
             "x-api-key": x_api_key,
             "device-datetime": device_datetime,
-            "geolocation": "-22.0; 14.0",#location,
-            "territory": "XX",
+            "geolocation": location,
+            "territory": territory,
             "client": "LEWA"
         }
         print(headers)
@@ -87,7 +92,12 @@ def get_running_movies_closeby(lat:float, lng:float, credentials):
         for cinema in cinemas_info:
             cinema_name = cinema['name']
             cinema_id = cinema['cinema_id']
-            show_times = get_show_times(cinema_id, tomorrow_date, device_datetime, authorization, x_api_key)
+            show_times = get_show_times(cinema_id=cinema_id,
+                                        date=tomorrow_date,
+                                        device_datetime=device_datetime,
+                                        authorization=authorization,
+                                        x_api_key=x_api_key,
+                                        territory=territory)
             if show_times:
                 show_times_dict[cinema_name] = show_times
 
@@ -100,7 +110,8 @@ def get_running_movies_closeby(lat:float, lng:float, credentials):
             return result_dict
 
     # If no successful response is obtained, return None
-    return None
+    print("🚫 Could not get cinema/movie infos")
+    return "Too many requests"
 
 
 # Function to parse credentials from environment variables

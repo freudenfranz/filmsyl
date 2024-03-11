@@ -35,6 +35,7 @@ class Location(BaseModel):
     """Location object constisting of latittude and longitude"""
     lat: float
     lng: float
+    countrycode: str|None
 
 class NetflixHistory(BaseModel):
     """Descriptor for Netflix history as pandas object transmitted"""
@@ -57,8 +58,9 @@ def get_recommendations(
                 examples=[
                     {
                         "location": {
-                            "lat": 52.50695915290848,
-                            "lng": 13.39189042392227,
+                            "lat": -22.0,
+                            "lng": 14.0,
+                            "countrycode": "XX"
                         },
                         "netflix": [
                             {
@@ -88,7 +90,6 @@ def get_recommendations(
     try:
         #print(f"✅ netflix_json.keys contains {netflix_json.keys()}")
         #get subset of movies containing only movies from users netflix history
-        #breakpoint()
         payload = payload.model_dump()
         location = payload['location']
         netflix_json = payload['netflix']
@@ -109,7 +110,9 @@ def get_recommendations(
         cine_recommendations = get_running_movies_closeby(
             lat=float(location['lat']),
             lng=float(location['lng']),
-            credentials=MOVIEGLU_CREDENTIALS)
+            credentials=MOVIEGLU_CREDENTIALS,
+            territory= location['countrycode'] if location['countrycode'] else "XX"
+            )
 
         #return all combined results
         result = {
