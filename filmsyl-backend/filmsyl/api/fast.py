@@ -37,6 +37,7 @@ class Location(BaseModel):
     lng: float
     countrycode: str|None
 
+
 class NetflixHistory(BaseModel):
     """Descriptor for Netflix history as pandas object transmitted"""
     Title: str
@@ -47,6 +48,7 @@ class RecommendationBody(BaseModel):
     Descriptor for post request body
     """
     location: Location
+    cinemacount: int|None
     netflix: List[NetflixHistory]
 
 @app.post("/get-recommendations")
@@ -60,8 +62,9 @@ def get_recommendations(
                         "location": {
                             "lat": -22.0,
                             "lng": 14.0,
-                            "countrycode": "XX"
+                            "countrycode": "XX",
                         },
+                        "cinemacount": 1,
                         "netflix": [
                             {
                             "Title": "The Godfather",
@@ -111,7 +114,8 @@ def get_recommendations(
             lat=float(location['lat']),
             lng=float(location['lng']),
             credentials=MOVIEGLU_CREDENTIALS,
-            territory= location['countrycode'] if location['countrycode'] else "XX"
+            territory= location['countrycode'] if location['countrycode'] else "XX",
+            cinemacount=payload['cinemacount']
             )
 
         #return all combined results

@@ -9,7 +9,7 @@ from filmsyl.settings import TIMEOUT
 from datetime import datetime, timedelta
 import requests
 
-def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"):
+def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX", cinemacount=1):
     def get_show_times(cinema_id,
                        date,
                        device_datetime,
@@ -17,6 +17,8 @@ def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"
                        x_api_key,
                        territory="XX"):
         url = f"https://api-gate2.movieglu.com/cinemaShowTimes/?cinema_id={cinema_id}&date={date}&sort=popularity"
+       # searchdate = datetime.strptime(date, '%Y-%m-%d')
+
         headers = {
             "api-version": "v200",
             "Authorization": authorization,
@@ -26,6 +28,7 @@ def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"
             "territory": territory,
             "client": "LEWA"
         }
+        print(headers)
         response = requests.get(url, headers=headers, timeout=TIMEOUT)
 
         # Check if the response is successful
@@ -33,7 +36,9 @@ def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"
             api_response = response.json()
             return api_response
         else:
-            return f"Cinamas responded with code {response.status_code}"
+            print(f"Cinamas responded with code {response.status_code}")
+            return None
+
 
     # Get tomorrow's date
     tomorrow_date = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
@@ -41,8 +46,8 @@ def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"
     # Set device datetime
     device_datetime = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
-    def get_nearby_cinemas(latitude: float, longitude:float, authorization, x_api_key, territory="XX"):
-        url = "https://api-gate2.movieglu.com/cinemasNearby/?n=2"
+    def get_nearby_cinemas(latitude: float, longitude:float, authorization, x_api_key, territory="XX", cinemacount=1):
+        url = f"https://api-gate2.movieglu.com/cinemasNearby/?n={cinemacount}"
         location = f"{str(latitude)};{str(longitude)}"
         headers = {
             "api-version": "v200",
@@ -79,7 +84,7 @@ def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"
     # Iterate over credentials
     for authorization, x_api_key in credentials:
         # Get nearby cinemas
-        cinemas_info = get_nearby_cinemas(lat, lng, authorization, x_api_key)
+        cinemas_info = get_nearby_cinemas(lat, lng, authorization, x_api_key,cinemacount=cinemacount)
         # If no cinemas are retrieved, proceed to the next credentials
         if cinemas_info is None:
             print("Warning: No cinemas info found")
