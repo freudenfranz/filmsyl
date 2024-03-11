@@ -3,7 +3,8 @@ import numpy as np
 from filmsyl.settings import *
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
-from filmsyl.data.data import get_imdb, get_netflix_example
+from filmsyl.data.data import get_imdb, get_netflix_example, find_titles_in_imdb
+from typing import  Union
 
 def preprocess_data(imdb_df, netflix_df):
     """
@@ -58,7 +59,7 @@ def calculate_similarity(imdb_df, netflix_df):
 
     return imdb_df
 
-def get_movie_recommendation(amount: int, imdb_df, netflix_df, new_movies):
+def get_movie_recommendation(amount: int, imdb_df, netflix_df):
     """
     Get movie recommendations based on IMDb and Netflix data.
 
@@ -73,23 +74,35 @@ def get_movie_recommendation(amount: int, imdb_df, netflix_df, new_movies):
     """
     # Preprocess IMDb and Netflix DataFrames
     imdb_df, netflix_df = preprocess_data(imdb_df, netflix_df)
-
     # Calculate similarity between IMDb and Netflix movies
-    imdb_df = calculate_similarity(imdb_df, netflix_df)
+    sorted_imdb_df = calculate_similarity(imdb_df, netflix_df)
 
+    # Recommend movies based on new_movies
+
+    """if new_movies:
+        new_m = new_movies['primaryTitle'].to_list()
+        breakpoint()
+        sorted_in_cinema = sorted_imdb_df['primaryTitle'].isin(new_m)
+        new_df = sorted_imdb_df[sorted_in_cinema]
+        return new_df.\
+            sort_values(by='mean_similarity', ascending=False)['primaryTitle'].\
+            head(amount)
+    else:"""
     # If new_movies list is empty, recommend top movies based on mean similarity
-    if new_movies.empty:
-        return imdb_df.sort_values(by='mean_similarity', ascending=False)['primaryTitle'].head(amount)
+    return sorted_imdb_df[
+        ~sorted_imdb_df['primaryTitle'].\
+        isin(netflix_df['title'])].\
+        sort_values(by='mean_similarity', ascending=False)['primaryTitle'].\
+        head(amount)
+        #return sorted_imdb_df.sort_values(by='mean_similarity', ascending=False)['primaryTitle'].head(amount)
 
-    # Otherwise, recommend movies based on new_movies
-    new_df = imdb_df[imdb_df['primaryTitle'].isin(new_movies['Title'])]
-    return new_df.sort_values(by='mean_similarity', ascending=False)['primaryTitle'].head(amount)
 
 if __name__ == "__main__":
     # Example usage
     imdb_df = get_imdb()
     netflix_df = get_netflix_example()
-    new_movies = ...  # Define new_movies DataFrame
-    amount = int(input("Enter the number of movies you want to be recommended: "))
-    recommendations = get_movie_recommendation(amount, imdb_df, netflix_df, new_movies)
-    print(recommendations)
+    netflix_subset = find_titles_in_imdb(netflix_df['Title'], imdb_df)  # Define new_movies DataFrame
+    cinema_movies_mock= imdb_df.copy().head(20000000)
+    amount = 40#int(input("Enter the number of movies you want to be recommended: "))
+   # recommendations = get_movie_recommendation(amount, imdb_df, netflix_subset, cinema_movies_mock)
+#    print(recommendations)

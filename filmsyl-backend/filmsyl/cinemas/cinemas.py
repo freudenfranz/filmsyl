@@ -65,7 +65,6 @@ def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"
         if response.status_code == 200:
             api_response = response.json()
             cinemas_info = []
-
             for cinema in api_response['cinemas']:
                 cinema_info = {
                     'name': cinema['cinema_name'],
