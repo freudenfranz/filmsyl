@@ -38,13 +38,13 @@ def get_running_movies_closeby(lat:float, lng:float, credentials):
 
     def get_nearby_cinemas(latitude: float, longitude:float, authorization, x_api_key):
         url = "https://api-gate2.movieglu.com/cinemasNearby/?n=2"
-        location = f"{str(latitude[0])};{str(longitude[0])}"
+        location = f"{str(latitude)};{str(longitude)}"
         headers = {
             "api-version": "v200",
             "Authorization": authorization,
             "x-api-key": x_api_key,
             "device-datetime": device_datetime,
-            "geolocation": location,
+            "geolocation": "-22.0; 14.0",#location,
             "territory": "XX",
             "client": "LEWA"
         }
@@ -95,7 +95,7 @@ def get_running_movies_closeby(lat:float, lng:float, credentials):
         if show_times_dict:
             # Combine show_times_dict and cinemas_info into a single dictionary
             result_dict = {'show_times': show_times_dict, 'cinemas_info': cinemas_info}
-
+            print("✅ got cinema/movie infos")
             # Return the combined dictionary as JSON
             return result_dict
 

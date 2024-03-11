@@ -15,6 +15,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from filmsyl.netflix.netflix import clean_titles, get_nf_imdb_matches
 from filmsyl.model.basemodel import get_rec
 from filmsyl.data.data import find_titles_in_imdb, get_imdb
+from filmsyl.cinemas.cinemas import get_running_movies_closeby
+from filmsyl.settings import MOVIEGLU_CREDENTIALS
+
 app = FastAPI()
 
 # Allowing all middleware is optional, but good practice for dev purposes
@@ -99,12 +102,14 @@ def get_recommendations(
         #nf_df = pd.read_json(netflix_json, orient='records')['Title']
         cleaned = clean_titles(nf_df['Title'])
         found = find_titles_in_imdb(cleaned, imdb_df)
+
         recs_result = get_rec(6, imdb_df=imdb_df, netflix_df=found)
 
         #get currently running movies in closeby cinemas
-        cine_recommendations = {}
-        #get_running_movies_closeby(
-         #   lat=location['lat'], lng=location['lng'], credentials=MOVIEGLU_CREDENTIALS)
+        cine_recommendations = get_running_movies_closeby(
+            lat=float(location['lat']),
+            lng=float(location['lng']),
+            credentials=MOVIEGLU_CREDENTIALS)
 
         #return all combined results
         result = {
@@ -125,8 +130,9 @@ def get_recommendations(
 if __name__ == '__main__':
     nf_history = pd.read_csv('./filmsyl/data/NetflixViewingHistory.csv').to_dict(orient='records')
     body = {'location': {
-                                'lat': 52.5068927,
-                                'lng': 13.3564182
+                                'lat': -22.0,
+                                'lng': 14.0
+
                             },
                  'netflix': nf_history
     }
