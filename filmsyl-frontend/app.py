@@ -3,11 +3,11 @@ import pandas as pd
 import requests
 import plotly.graph_objects as go
 from streamlit_js_eval import get_geolocation
-import os
 import json
+import os
 
 API_ENDPOINT = "https://films-you-like-2h7mcggcwa-ew.a.run.app/get-recommendations"
-#API_ENDPOINT = "/get-recommendations"
+#API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 def display_netflix_history(response):
     """
@@ -66,11 +66,7 @@ def display_movies_recommendations():
             data = json.load(f)
 
         # Get the movie recommendations from the JSON data
-        movies = data.get('showings', [])
         recommendations = data.get('recommendations', [])
-
-        # Display a table with movie recommendations and their information
-        st.markdown("<h1 style='text-align: center;'>Movie recommendations</h1>", unsafe_allow_html=True)
 
         if recommendations:
             # Initialize lists to store movie information
@@ -99,6 +95,9 @@ def display_movies_recommendations():
                 "Rating": ratings
             })
 
+            # Adjust index to start from 1
+            df.index += 1
+
             # Apply CSS to fill the background color of the first row of headers with blue
             styles = [
                 dict(selector="th", props=[("font-size", "120%"),
@@ -108,7 +107,7 @@ def display_movies_recommendations():
             ]
 
             # Display the DataFrame as a single table
-            st.markdown("<h3 style='text-align: center;'>Movie Recommendations</h3>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center;'>Movie recommendations</h1>", unsafe_allow_html=True)
             st.table(df.style.set_table_styles(styles))
         else:
             st.error("No movie recommendations found in the data.")
@@ -125,7 +124,6 @@ def main():
     if geolocation:
         latitude = geolocation['coords']['latitude']
         longitude = geolocation['coords']['longitude']
-        #countrycode = geolocation['coords']['countrycode']
 
         # Allow user to upload a file
         uploaded_file = st.file_uploader("To help us understand your taste, upload your Netflix history", type=['csv'])
@@ -146,7 +144,7 @@ def main():
             st.markdown("<br><br><br>", unsafe_allow_html=True)  # Add some space before the spinner
             with st.spinner("We are trying to understand your weird taste..."):
                 # Send data to API and get response
-                response = send_to_api(netflix_data) #, latitude, longitude, counntrycode="DE")
+                response = send_to_api(netflix_data, latitude, longitude)
                 # Display "scroll down" message with grey triangle pointing down
                 st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
                 st.markdown("<p style='text-align: center; font-size: 20px; color: #808080;'>Scroll down</p>", unsafe_allow_html=True)
@@ -167,16 +165,14 @@ def main():
     else:
         st.warning("Please allow geolocation for this app to work")
 
-def send_to_api(netflix_data, latitude=-22.0, longitude=14, countrycode="XX"):
+def send_to_api(netflix_data, latitude, longitude):
     payload = {
         "location": {
             "lat": latitude,
-            "lng": longitude,
-            "countrycode": countrycode
-            },
-            "cinemacount": 1,
-            "netflix": netflix_data,
-            }
+            "lng": longitude
+        },
+        "netflix": netflix_data
+    }
 
     payload["location"]["lat"] = float(payload["location"]["lat"])
     payload["location"]["lng"] = float(payload["location"]["lng"])
