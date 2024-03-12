@@ -1,4 +1,17 @@
 {
+  "statistics": {
+    "total_films_count": 178,
+    "genres_count": {
+      "Crime": 78,
+      "Drama": 54,
+      "Horror": 22,
+      "Romantic": 12,
+      "Magin": 2
+    },
+    "directors_count": {
+      "Francis Ford Coppola": 1
+    }
+  },
   "showings": [
       {
           "Film Name": "Raiders of the Lost Ark",
@@ -347,51 +360,27 @@
   "recommendations": [
       {
           "Film ID": "559",
-          "Film Name": "The Broken Coin",
-          "Film Director": "Lambert",
-          "Film Genre": "Comedy",
-          "Film Duration": "200",
-          "Film Rating": "4.0"
+          "Film Name": "The Broken Coin"
       },
       {
           "Film ID": "31063",
-          "Film Name": "You're a Big Boy Now",
-          "Film Director": "Lambert",
-          "Film Genre": "Comedy",
-          "Film Duration": "160",
-          "Film Rating": "3.0"
+          "Film Name": "You're a Big Boy Now"
       },
       {
           "Film ID": "32710",
-          "Film Name": "The Rain People",
-          "Film Director": "Lambert",
-          "Film Genre": "Comedy",
-          "Film Duration": "150",
-          "Film Rating": "2.0"
+          "Film Name": "The Rain People"
       },
       {
           "Film ID": "41691",
-          "Film Name": "The Cotton Club",
-          "Film Director": "Lambert",
-          "Film Genre": "Porn",
-          "Film Duration": "150",
-          "Film Rating": "4.3"
+          "Film Name": "The Cotton Club"
       },
       {
           "Film ID": "47954",
-          "Film Name": "Bram Stoker's Dracula",
-          "Film Director": "Lambert",
-          "Film Genre": "Comedy",
-          "Film Duration": "150",
-          "Film Rating": "1.0"
+          "Film Name": "Bram Stoker's Dracula"
       },
       {
           "Film ID": "167620",
-          "Film Name": "Twixt",
-          "Film Director": "Lambert",
-          "Film Genre": "Comedy",
-          "Film Duration": "150",
-          "Film Rating": "2.0"
+          "Film Name": "Twixt"
       }
   ]
 }
