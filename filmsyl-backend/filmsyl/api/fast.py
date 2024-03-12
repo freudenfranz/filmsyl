@@ -123,7 +123,7 @@ def get_recommendations(
             "statistics": imdb_stats['statistics'],
             'matched_rows':imdb_stats['matched_rows'],
             "recommendations": recs_result.to_dict(),
-            "cinerec": cine_recommendations
+            "showings": cine_recommendations
         }
 
         return result
@@ -135,13 +135,11 @@ def get_recommendations(
 
 
 if __name__ == '__main__':
-    nf_history = pd.read_csv('./filmsyl/data/NetflixViewingHistory.csv').to_dict(orient='records')
-    body = {'location': {
-                                'lat': -22.0,
-                                'lng': 14.0
+    nf_history = pd.read_csv('./filmsyl/data/NetflixViewingHistory.csv')#.to_dict(orient="records")
+    nf_history.dropna(inplace=True)
+    location = Location(lat= -22.0, lng=14.0, countrycode="XX")
 
-                            },
-                 'netflix': nf_history
-    }
+    hist = [NetflixHistory(Title=h[1].Title, Date=h[1].Date) for h in nf_history.iterrows()]
+    body = RecommendationBody(location=location,cinemacount=2, netflix=hist)
     recs= get_recommendations(body)
     print(recs)
