@@ -164,12 +164,65 @@ def display_netflix_history(response):
 
     col2.plotly_chart(fig)
 
-def create_map(latitude, longitude, cinemas_info, width=800, height=400):
-    # Title before map
-    st.markdown("<h1 style='text-align: center;'>Two cinemas near your show films you will love!</h1>", unsafe_allow_html=True)
+def display_movies_recommendations():
+    try:
+        # Load JSON file
+        with open('combined_output.json', 'r') as f:
+            data = json.load(f)
 
-    # Create a map centered around the provided latitude and longitude with custom width and height
-    m = folium.Map(location=[latitude, longitude], zoom_start=2, tiles=None, width=width, height=height)
+        # Get the movie recommendations from the JSON data
+        recommendations = data.get('recommendations', [])
+
+        if recommendations:
+            # Initialize lists to store movie information
+            titles = []
+            genres = []
+            directors = []
+            durations = []
+            ratings = []
+
+            # Extract movie information
+            for movie in recommendations:
+                titles.append(movie.get('Film Name', ''))
+                genres.append(movie.get('Film Genre', ''))
+                directors.append(movie.get('Film Director', ''))
+                durations.append(movie.get('Film Duration', ''))
+                rating = movie.get('Film Rating', '')
+                rating_emoji = '⭐️' * int(float(rating.split()[0]))
+                ratings.append(f"{rating} {rating_emoji}")
+
+            # Create DataFrame for all movie recommendations
+            df = pd.DataFrame({
+                "Title": titles,
+                "Genre": genres,
+                "Director": directors,
+                "Duration": durations,
+                "Rating": ratings
+            })
+
+            # Adjust index to start from 1
+            df.index += 1
+
+            # Apply CSS to fill the background color of the first row of headers with blue
+            styles = [
+                dict(selector="th", props=[("font-size", "120%"),
+                                            ("text-align", "center")]),
+                dict(selector="thead tr th", props=[("background-color", "blue"),  # Apply to the first row of headers
+                                                     ("color", "white")])
+            ]
+
+            # Display the DataFrame as a single table
+            st.markdown("<h1 style='text-align: center;'>Movie recommendations</h1>", unsafe_allow_html=True)
+            st.table(df.style.set_table_styles(styles))
+        else:
+            st.error("No movie recommendations found in the data.")
+    except FileNotFoundError:
+        st.error("File 'combined_output.json' not found.")
+
+def main():
+    # Centered title
+    st.markdown("<h1 style='text-align: center;'>Ready to find films you like screening near you?</h1>", unsafe_allow_html=True)
+    st.markdown("<h6 style='text-align: center; color: #808080; '>Upload your Netflix history and decide when and where to go to the cinema</h6>", unsafe_allow_html=True)
 
     # Add the CartoDB Positron tile layer
     folium.TileLayer('cartodbpositron').add_to(m)
@@ -273,7 +326,6 @@ def send_to_api(netflix_data, latitude:float, longitude:float):
     print(f"Frontend: using payload {payload}")
     #if payload["location"]["lat"] is not None:
     payload["location"]["lat"] = float(payload["location"]["lat"])
-    #if payload["location"]["lng"] is not None:
     payload["location"]["lng"] = float(payload["location"]["lng"])
 
     response = requests.post(API_ENDPOINT, json=payload)
