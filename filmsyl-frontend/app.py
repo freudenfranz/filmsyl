@@ -3,8 +3,11 @@ import pandas as pd
 import requests
 import plotly.graph_objects as go
 from streamlit_js_eval import get_geolocation
+import os
+import json
 
 API_ENDPOINT = "https://films-you-like-2h7mcggcwa-ew.a.run.app/get-recommendations"
+#API_ENDPOINT = "/get-recommendations"
 
 def display_netflix_history(response):
     """
@@ -56,37 +59,61 @@ def display_netflix_history(response):
 
     col2.plotly_chart(fig)
 
-def display_movies_recommendations(movie_data):
+def display_movies_recommendations():
+    try:
+        # Load JSON file
+        with open('combined_output.json', 'r') as f:
+            data = json.load(f)
 
-    if movie_data:
-        st.write("Movie Recommendations:")
-        for movie_title in movie_data:
-            st.write(movie_title)
-    else:
-        st.write("No recommendations available.")
+        # Get the movie recommendations from the JSON data
+        movies = data.get('showings', [])
+        recommendations = data.get('recommendations', [])
 
+        # Display a table with movie recommendations and their information
+        st.markdown("<h1 style='text-align: center;'>Movie recommendations</h1>", unsafe_allow_html=True)
 
-    #st.write("Location Map")
-    #map_data = pd.DataFrame({
-     #   'latitude': movie_data['Latitude'],
-      #  'longitude': movie_data['Longitude']
-    #})
-    #st.map(map_data)
+        if recommendations:
+            # Initialize lists to store movie information
+            titles = []
+            genres = []
+            directors = []
+            durations = []
+            ratings = []
 
-    #st.write("Movie Information:")
-    #for index, row in movie_data.iterrows():
-     #   col1, col2 = st.columns([1, 4])
-      #  with col1:
-       #     st.image(row['Image'], width=150, caption=row['Name'])
-        #with col2:
-         #   st.write(f"Name: {row['Name']}")
-          #  st.write(f"Rating: {row['Rating']}")
-           # st.write(f"Location: {row['Location']}")
-            #recommendations = row.get('recommendations', {})
-            #if recommendations:
-            #    st.write("Recommended Movies:")
-            #    for movie_title in recommendations.values():
-            #        st.text(movie_title)
+            # Extract movie information
+            for movie in recommendations:
+                titles.append(movie.get('Film Name', ''))
+                genres.append(movie.get('Film Genre', ''))
+                directors.append(movie.get('Film Director', ''))
+                durations.append(movie.get('Film Duration', ''))
+                rating = movie.get('Film Rating', '')
+                rating_emoji = '⭐️' * int(float(rating.split()[0]))
+                ratings.append(f"{rating} {rating_emoji}")
+
+            # Create DataFrame for all movie recommendations
+            df = pd.DataFrame({
+                "Title": titles,
+                "Genre": genres,
+                "Director": directors,
+                "Duration": durations,
+                "Rating": ratings
+            })
+
+            # Apply CSS to fill the background color of the first row of headers with blue
+            styles = [
+                dict(selector="th", props=[("font-size", "120%"),
+                                            ("text-align", "center")]),
+                dict(selector="thead tr th", props=[("background-color", "blue"),  # Apply to the first row of headers
+                                                     ("color", "white")])
+            ]
+
+            # Display the DataFrame as a single table
+            st.markdown("<h3 style='text-align: center;'>Movie Recommendations</h3>", unsafe_allow_html=True)
+            st.table(df.style.set_table_styles(styles))
+        else:
+            st.error("No movie recommendations found in the data.")
+    except FileNotFoundError:
+        st.error("File 'combined_output.json' not found.")
 
 def main():
     # Centered title
@@ -98,6 +125,7 @@ def main():
     if geolocation:
         latitude = geolocation['coords']['latitude']
         longitude = geolocation['coords']['longitude']
+        #countrycode = geolocation['coords']['countrycode']
 
         # Allow user to upload a file
         uploaded_file = st.file_uploader("To help us understand your taste, upload your Netflix history", type=['csv'])
@@ -118,7 +146,7 @@ def main():
             st.markdown("<br><br><br>", unsafe_allow_html=True)  # Add some space before the spinner
             with st.spinner("We are trying to understand your weird taste..."):
                 # Send data to API and get response
-                response = send_to_api(netflix_data, latitude, longitude)
+                response = send_to_api(netflix_data) #, latitude, longitude, counntrycode="DE")
                 # Display "scroll down" message with grey triangle pointing down
                 st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
                 st.markdown("<p style='text-align: center; font-size: 20px; color: #808080;'>Scroll down</p>", unsafe_allow_html=True)
@@ -133,20 +161,22 @@ def main():
             st.markdown("<div style='text-align: center;'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50' fill='#808080'><path d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/><path fill='none' d='M0 0h24v24H0z'/></svg></div>", unsafe_allow_html=True)
 
             # Display movie recommendations
-            display_movies_recommendations(response.get('recommendations', {}).get('movies', []))
+            display_movies_recommendations()
 
 
     else:
         st.warning("Please allow geolocation for this app to work")
 
-def send_to_api(netflix_data, latitude, longitude):
+def send_to_api(netflix_data, latitude=-22.0, longitude=14, countrycode="XX"):
     payload = {
         "location": {
             "lat": latitude,
-            "lng": longitude
-        },
-        "netflix": netflix_data
-    }
+            "lng": longitude,
+            "countrycode": countrycode
+            },
+            "cinemacount": 1,
+            "netflix": netflix_data,
+            }
 
     payload["location"]["lat"] = float(payload["location"]["lat"])
     payload["location"]["lng"] = float(payload["location"]["lng"])
