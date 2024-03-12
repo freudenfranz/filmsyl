@@ -114,6 +114,9 @@ def display_movies_recommendations():
     except FileNotFoundError:
         st.error("File 'combined_output.json' not found.")
 
+
+display_movies_recommendations()
+
 def main():
     # Centered title
     st.markdown("<h1 style='text-align: center;'>Ready to find films you like screening near you?</h1>", unsafe_allow_html=True)
