@@ -13,7 +13,7 @@ from fastapi import Body, FastAPI
 from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from filmsyl.netflix.netflix import clean_titles, get_nf_imdb_matches
-from filmsyl.model.basemodel import get_rec
+from filmsyl.model.basemodel import get_movie_recommendation
 from filmsyl.data.data import find_titles_in_imdb, get_imdb
 from filmsyl.cinemas.cinemas import get_running_movies_closeby
 from filmsyl.settings import MOVIEGLU_CREDENTIALS
@@ -35,6 +35,8 @@ class Location(BaseModel):
     """Location object constisting of latittude and longitude"""
     lat: float
     lng: float
+    countrycode: Union[str, None]
+
 
 class NetflixHistory(BaseModel):
     """Descriptor for Netflix history as pandas object transmitted"""
@@ -46,6 +48,7 @@ class RecommendationBody(BaseModel):
     Descriptor for post request body
     """
     location: Location
+    cinemacount: Union[int, None]
     netflix: List[NetflixHistory]
 
 @app.post("/get-recommendations")
@@ -57,9 +60,11 @@ def get_recommendations(
                 examples=[
                     {
                         "location": {
-                            "lat": 52.50695915290848,
-                            "lng": 13.39189042392227,
+                            "lat": -22.0,
+                            "lng": 14.0,
+                            "countrycode": "XX",
                         },
+                        "cinemacount": 1,
                         "netflix": [
                             {
                             "Title": "The Godfather",
@@ -88,7 +93,6 @@ def get_recommendations(
     try:
         #print(f"✅ netflix_json.keys contains {netflix_json.keys()}")
         #get subset of movies containing only movies from users netflix history
-        #breakpoint()
         payload = payload.model_dump()
         location = payload['location']
         netflix_json = payload['netflix']
@@ -103,13 +107,16 @@ def get_recommendations(
         cleaned = clean_titles(nf_df['Title'])
         found = find_titles_in_imdb(cleaned, imdb_df)
 
-        recs_result = get_rec(6, imdb_df=imdb_df, netflix_df=found)
+        recs_result = get_movie_recommendation(6, imdb_df=imdb_df, netflix_df=found)
 
         #get currently running movies in closeby cinemas
         cine_recommendations = get_running_movies_closeby(
             lat=float(location['lat']),
             lng=float(location['lng']),
-            credentials=MOVIEGLU_CREDENTIALS)
+            credentials=MOVIEGLU_CREDENTIALS,
+            territory= location['countrycode'] if location['countrycode'] else "XX",
+            cinemacount=payload['cinemacount']
+            )
 
         #return all combined results
         result = {
