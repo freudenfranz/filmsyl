@@ -1,59 +1,101 @@
-"""
-Base
-"""
-
 import pandas as pd
 import numpy as np
+from filmsyl.settings import *
 from sklearn.feature_extraction.text import TfidfVectorizer
-#Vectorization and similarity(linear kernel)
 from sklearn.metrics.pairwise import linear_kernel
+from filmsyl.data.data import get_imdb, get_netflix_example
 
-from filmsyl.data.data import get_imdb, get_netflix_example, find_titles_in_imdb
-from filmsyl.netflix.netflix import clean_titles
-
-
-def get_rec(amount: int, imdb_df: pd.DataFrame, netflix_df: pd.DataFrame) -> pd.DataFrame:
+def preprocess_data(imdb_df, netflix_df):
     """
-    Get movie get_recommendations based on a imdb_database and a netflix history
+    Preprocesses IMDb and Netflix DataFrames by combining relevant columns,
+    filling missing values, and creating 'text_features' column.
+
+    Parameters:
+        imdb_df (pd.DataFrame): DataFrame containing IMDb data.
+        netflix_df (pd.DataFrame): DataFrame containing Netflix data.
+
+    Returns:
+        pd.DataFrame, pd.DataFrame: Preprocessed IMDb and Netflix DataFrames.
     """
-    imdb_df['text_features'] = imdb_df['genres'] + ' ' + imdb_df['Director']+ ' ' + imdb_df['plot']
-    #imdb_df_preprocess=imdb_df.drop(columns=['genres','Director','averageRating','titleId','startYear','numVotes','runtimeMinutes'])
-
-    joined_nf = netflix_df['title'] + ' ' + netflix_df['genres'] + ' ' + netflix_df['Director']
-    netflix_df.loc[:,['text_features']] = joined_nf
-    #netflix_df_preprocess=netflix_df.drop(columns=['genres','Director','averageRating','titleId','startYear','numVotes','runtimeMinutes'])
-
-    #Define a TF-IDF Vectorizer Object. Remove all english stop words such as 'the', 'a'
-    tfidf = TfidfVectorizer(stop_words='english')
-    #Replace NaN with an empty string
+    # Combine relevant columns and fill missing values for IMDb DataFrame
+    imdb_df['text_features'] = imdb_df['genres'] + ' ' + imdb_df['Director'] + ' ' + imdb_df['plot']
     imdb_df['text_features'] = imdb_df['text_features'].fillna('')
 
+    # Combine relevant columns and fill missing values for Netflix DataFrame
+    netflix_df['text_features'] = netflix_df['genres'] + ' ' + netflix_df['Director']
+    netflix_df['text_features'] = netflix_df['text_features'].fillna('')
+
+    return imdb_df, netflix_df
+
+def calculate_similarity(imdb_df, netflix_df):
+    """
+    Calculates similarity between IMDb and Netflix movies using TF-IDF vectorization and cosine similarity.
+
+    Parameters:
+        imdb_df (pd.DataFrame): Preprocessed IMDb DataFrame.
+        netflix_df (pd.DataFrame): Preprocessed Netflix DataFrame.
+
+    Returns:
+        pd.DataFrame: IMDb DataFrame with 'mean_similarity' column added.
+    """
+    # Define TF-IDF vectorizer
+    tfidf = TfidfVectorizer(stop_words='english')
+
+    # Fit and transform IMDb text features
     tfidf_matrix = tfidf.fit_transform(imdb_df['text_features'])
 
+    # Transform Netflix text features
     netflix_tfidf = tfidf.transform(netflix_df['text_features'])
 
-    #indices = pd.Series(imdb_df.index, index=imdb_df['primaryTitle']).drop_duplicates()
-
+    # Compute cosine similarity between Netflix and IMDb movies
     cosine_sim_netflix = linear_kernel(netflix_tfidf, tfidf_matrix)
 
+    # Calculate mean similarity across all Netflix movies
     mean_similarity = np.mean(cosine_sim_netflix, axis=0)
 
+    # Add 'mean_similarity' column to IMDb DataFrame
     imdb_df['mean_similarity'] = mean_similarity
 
-    sorted_df = imdb_df.sort_values(by='mean_similarity', ascending=False)
+    return imdb_df
 
-    # Return the top 'amount' movie titles as a Series
-    return sorted_df['primaryTitle'].head(amount)
+def get_movie_recommendation(amount: int, imdb_df, netflix_df, new_movies):
+    """
+    Get movie recommendations based on IMDb and Netflix data.
 
-    # Display the first [amount] IMDb recommendations
+    Parameters:
+        amount (int): Number of movie recommendations to return.
+        imdb_df (pd.DataFrame): DataFrame containing IMDb data.
+        netflix_df (pd.DataFrame): DataFrame containing Netflix data.
+        new_movies (pd.DataFrame): DataFrame containing new movies data.
+
+    Returns:
+        pd.Series: Series containing recommended movie titles.
+    """
+    # Preprocess IMDb and Netflix DataFrames
+    imdb_df, netflix_df = preprocess_data(imdb_df, netflix_df)
+
+    # Calculate similarity between IMDb and Netflix movies
+    sorted_imdb_df = calculate_similarity(imdb_df, netflix_df)
+
+    # If new_movies list is empty, recommend top movies based on mean similarity
+    if new_movies.empty:
+        return sorted_imdb_df.sort_values(by='mean_similarity', ascending=False)['primaryTitle'].head(amount)
+
+    # Otherwise, recommend movies based on new_movies
+    new_df = sorted_imdb_df[sorted_imdb_df['primaryTitle'].isin(new_movies['primaryTitle'])]
+    rec_df = new_df.sort_values(by='mean_similarity', ascending=False)[['primaryTitle','runtimeMinutes','genres','averageRating','Director']].head(amount)
+
+    index_dict = rec_df.to_dict(orient='records')
+
+    return index_dict
 
 
-if __name__ == '__main__':
-    imdb_test_df = get_imdb()
-    netflix_test_df = get_netflix_example()
-    cleaned_df = clean_titles(netflix_test_df['Title'])
-    matched_nf = find_titles_in_imdb(cleaned_df, imdb_test_df)
-
-    #netflix_df.replace({'\\N': np.nan, '': np.nan}, inplace=True)
-    output = get_rec(5,imdb_test_df,matched_nf)
-    print(output)
+if __name__ == "__main__":
+    # Example usage
+    imdb_df = get_imdb()
+    netflix_df = get_netflix_example()
+    new_movies = imdb_df.copy().head(10)  # Define new_movies DataFrame
+    print(new_movies)
+    amount = int(input("Enter the number of movies you want to be recommended: "))
+    recommendations = get_movie_recommendation(amount, imdb_df, netflix_df, new_movies)
+    print(recommendations)
