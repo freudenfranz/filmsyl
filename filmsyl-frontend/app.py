@@ -57,6 +57,38 @@ def display_netflix_history(response):
 
     col2.plotly_chart(fig)
 
+def display_movies_recommendations(movie_data):
+
+    if movie_data:
+        st.write("Movie Recommendations:")
+        for movie_title in movie_data:
+            st.write(movie_title)
+    else:
+        st.write("No recommendations available.")
+
+
+    #st.write("Location Map")
+    #map_data = pd.DataFrame({
+     #   'latitude': movie_data['Latitude'],
+      #  'longitude': movie_data['Longitude']
+    #})
+    #st.map(map_data)
+
+    #st.write("Movie Information:")
+    #for index, row in movie_data.iterrows():
+     #   col1, col2 = st.columns([1, 4])
+      #  with col1:
+       #     st.image(row['Image'], width=150, caption=row['Name'])
+        #with col2:
+         #   st.write(f"Name: {row['Name']}")
+          #  st.write(f"Rating: {row['Rating']}")
+           # st.write(f"Location: {row['Location']}")
+            #recommendations = row.get('recommendations', {})
+            #if recommendations:
+            #    st.write("Recommended Movies:")
+            #    for movie_title in recommendations.values():
+            #        st.text(movie_title)
+
 def main():
     # Centered title
     st.markdown("<h1 style='text-align: center;'>Ready to find films you like screening near you?</h1>", unsafe_allow_html=True)
@@ -100,6 +132,11 @@ def main():
             st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
             st.markdown("<p style='text-align: center; font-size: 20px; color: #808080;'>Scroll down</p>", unsafe_allow_html=True)
             st.markdown("<div style='text-align: center;'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50' fill='#808080'><path d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/><path fill='none' d='M0 0h24v24H0z'/></svg></div>", unsafe_allow_html=True)
+
+            # Display movie recommendations
+            display_movies_recommendations(response.get('recommendations', {}).get('movies', []))
+
+
     else:
         st.warning("Please allow geolocation for this app to work")
 
@@ -112,9 +149,7 @@ def send_to_api(netflix_data, latitude, longitude):
         "netflix": netflix_data
     }
 
-    #if payload["location"]["lat"] is not None:
     payload["location"]["lat"] = float(payload["location"]["lat"])
-    #if payload["location"]["lng"] is not None:
     payload["location"]["lng"] = float(payload["location"]["lng"])
 
     response = requests.post(API_ENDPOINT, json=payload)
