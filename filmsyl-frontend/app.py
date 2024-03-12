@@ -10,7 +10,7 @@ import time
 import json
 
 API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
-API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
+#API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
 def main():
