@@ -107,8 +107,6 @@ def get_recommendations(
         cleaned = clean_titles(nf_df['Title'])
         found = find_titles_in_imdb(cleaned, imdb_df)
 
-        recs_result = get_movie_recommendation(6, imdb_df=imdb_df, netflix_df=found)
-
         #get currently running movies in closeby cinemas
         cine_recommendations = get_running_movies_closeby(
             lat=float(location['lat']),
@@ -118,14 +116,20 @@ def get_recommendations(
             cinemacount=payload['cinemacount']
             )
 
-        rich_recommends = enrich_Recommendations(cine_recommendations, imdb_df)
+        rec_titles = pd.DataFrame([rec['Film Name'] for rec in cine_recommendations])
+        cine_recs_in_db = imdb_df[imdb_df['primaryTitle'].isin(rec_titles[0])]
+
+        rich_recommends, not_found = enrich_recommendations(cine_recommendations, cine_recs_in_db)
+        recs_result = get_movie_recommendation(6, imdb_df=imdb_df, netflix_df=found, new_movies=cine_recs_in_db)
+
 
         #return all combined results
         result = {
             "statistics": imdb_stats['statistics'],
             'matched_rows':imdb_stats['matched_rows'],
             "recommendations": recs_result.to_dict(),
-            "showings": rich_recommends
+            "showings": rich_recommends,
+            "not_fonud_cine_recs": not_found
         }
 
         return result
@@ -134,29 +138,31 @@ def get_recommendations(
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-def enrich_Recommendations(cine_recommendations:list, imdb_df: pd.DataFrame)-> list:
+def enrich_recommendations(cine_recommendations:list, cine_recs_in_db: pd.DataFrame)-> list:
     """
     repacked dictionary to a better output
     """
-    rec_titles = pd.DataFrame([rec['Film Name'] for rec in cine_recommendations])
-    cine_recs_in_db = imdb_df[imdb_df['primaryTitle'].isin(rec_titles[0])]
     new_recommendations=[]
+    not_found = []
     for rec in cine_recommendations:
         imdb_rec = cine_recs_in_db[cine_recs_in_db['primaryTitle']==rec["Film Name"]]
-        imdb_rec = imdb_rec.head(1)
-        rec["Film Name"]=imdb_rec['title'].head(1).values[0]
-        rec["Film Director"]=imdb_rec['Director'].head(1).values[0]
-        rec["Film Rating"]=imdb_rec['averageRating'].head(1).values[0]
-        rec["Film Votes"]=imdb_rec['numVotes'].head(1).head(1).values[0]
-        rec["Film Duration"]=imdb_rec['runtimeMinutes'].head(1).values[0]
-        rec["Film Genre"]=imdb_rec['genres'].head(1).values[0]
-        rec['Start Year']=imdb_rec['startYear'].head(1).values[0]
-        rec['plot']=imdb_rec['plot'].head(1).values[0]
-        rec['mean_similarity']=imdb_rec['mean_similarity'].head(1).values[0]
-        rec["IMDB ID"]=imdb_rec['titleId'].head(1).values[0]
 
+        if(imdb_rec.shape[0] == 1):
+            imdb_rec = imdb_rec.head(1)
+            rec["Film Name"]=imdb_rec['title'].head(1).values[0]
+            rec["Film Director"]=imdb_rec['Director'].head(1).values[0]
+            rec["Film Rating"]=imdb_rec['averageRating'].head(1).values[0]
+            rec["Film Votes"]=imdb_rec['numVotes'].head(1).head(1).values[0]
+            rec["Film Duration"]=imdb_rec['runtimeMinutes'].head(1).values[0]
+            rec["Film Genre"]=imdb_rec['genres'].head(1).values[0]
+            rec['Start Year']=imdb_rec['startYear'].head(1).values[0]
+            rec['plot']=imdb_rec['plot'].head(1).values[0]
+            rec["IMDB ID"]=imdb_rec['titleId'].head(1).values[0]
+        else:
+            print(f'❗WARNING: Did not find cinema movie {rec["Film Name"]} in imdb db❗')
+            not_found.append(rec["Film Name"])
         new_recommendations.append(rec)
-    return new_recommendations
+    return new_recommendations, not_found
 
 
 if __name__ == '__main__':
