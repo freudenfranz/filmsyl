@@ -28,7 +28,7 @@ def preprocess_data(imdb_df, netflix_df):
 
     return imdb_df, netflix_df
 
-def calculate_similarity(imdb_df, netflix_df):
+def calculate_similarity(imdb_df: pd.DataFrame, netflix_df: pd.DataFrame) -> pd.DataFrame:
     """
     Calculates similarity between IMDb and Netflix movies using TF-IDF vectorization and cosine similarity.
 

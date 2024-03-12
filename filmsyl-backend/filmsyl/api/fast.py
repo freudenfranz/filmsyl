@@ -4,9 +4,9 @@ Paths:
     POST: /upload-netflix
 """
 
+from typing import List, Union
 from typing_extensions import Annotated
 from pydantic import BaseModel
-from typing import List, Union
 
 import pandas as pd
 from fastapi import Body, FastAPI
