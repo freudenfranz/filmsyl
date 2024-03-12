@@ -9,7 +9,7 @@ from streamlit_folium import folium_static
 import time
 import json
 
-#API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
+API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
 API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
@@ -38,8 +38,12 @@ def main():
         #    response = json.load(f)
 
         # Display "scroll down" message
-        display_scroll_down_message()
+        #display_scroll_down_message()
 
+        #display_movies_recommendations()
+
+        # Display "scroll down" message
+        display_scroll_down_message()
         # Display Netflix history
         display_netflix_history(response)
 
@@ -164,6 +168,7 @@ def display_netflix_history(response):
 
     col2.plotly_chart(fig)
 
+
 def display_movies_recommendations():
     try:
         # Load JSON file
@@ -219,10 +224,12 @@ def display_movies_recommendations():
     except FileNotFoundError:
         st.error("File 'combined_output.json' not found.")
 
-def main():
-    # Centered title
-    st.markdown("<h1 style='text-align: center;'>Ready to find films you like screening near you?</h1>", unsafe_allow_html=True)
-    st.markdown("<h6 style='text-align: center; color: #808080; '>Upload your Netflix history and decide when and where to go to the cinema</h6>", unsafe_allow_html=True)
+def create_map(latitude, longitude, cinemas_info, width=800, height=400):
+    # Title before map
+    st.markdown("<h1 style='text-align: center;'>Two cinemas near your show films you will love!</h1>", unsafe_allow_html=True)
+
+    # Create a map centered around the provided latitude and longitude with custom width and height
+    m = folium.Map(location=[latitude, longitude], zoom_start=2, tiles=None, width=width, height=height)
 
     # Add the CartoDB Positron tile layer
     folium.TileLayer('cartodbpositron').add_to(m)
@@ -256,7 +263,8 @@ def main():
 
 def show_films_in_cinemas(data):
 
-    st.markdown(f"<p style='font-size: 24px; color: black;'>These films are showing tomorrow:</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='font-size: 24px; color: black;'>These films are showing tomorrow:</p>",
+                unsafe_allow_html=True)
 
     # Keep track of films already visualized
     visualized_films = set()
@@ -279,8 +287,10 @@ def show_films_in_cinemas(data):
 
             # Display other details on the right side
             right_column.metric(film['Film Director'], film['Film Name'])
-            right_column.write(f"<span style='color: darkgrey'>{film['Film Genre']} ‧ {film['Film Rating']}</span>", unsafe_allow_html=True)
-            right_column.write(f"<span style='color: darkgrey; margin-bottom: 10px'>{film['Film Duration']}</span>", unsafe_allow_html=True)
+            right_column.write(f"<span style='color: darkgrey'>{film['Film Genre']} ‧ {film['Film Rating']}</span>",
+                               unsafe_allow_html=True)
+            right_column.write(f"<span style='color: darkgrey; margin-bottom: 10px'>{film['Film Duration']}</span>",
+                               unsafe_allow_html=True)
 
             # Add space between films
             st.markdown("<br>", unsafe_allow_html=True)
@@ -316,9 +326,12 @@ def send_to_api(netflix_data, latitude:float, longitude:float):
     """
     payload = {
         "location": {
-            "lat": latitude, ####### CHANGE WHEN IN PRODUCTION
-            "lng": longitude,
-            "countrycode": "DE"
+            #"lat": latitude,
+            #"lng": longitude,
+            #"countrycode": "DE"
+            "lat": -22, ####### CHANGE WHEN IN PRODUCTION
+            "lng": 14,
+            "countrycode": "XX"
         },
         "cinemacount": 1,
         "netflix": netflix_data
@@ -328,7 +341,7 @@ def send_to_api(netflix_data, latitude:float, longitude:float):
     payload["location"]["lat"] = float(payload["location"]["lat"])
     payload["location"]["lng"] = float(payload["location"]["lng"])
 
-    response = requests.post(API_ENDPOINT, json=payload)
+    response = requests.post(API_ENDPOINT, json=payload, timeout=40)
 
     if response.status_code == 200:
         pass
