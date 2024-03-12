@@ -27,7 +27,7 @@ def preprocess_data(imdb_df, netflix_df):
 
     return imdb_df, netflix_df
 
-def calculate_similarity(imdb_df: pd.DataFrame, netflix_df: pd.DataFrame) -> pd.DataFrame:
+def calculate_similarity(imdb_df, netflix_df):
     """
     Calculates similarity between IMDb and Netflix movies using TF-IDF vectorization and cosine similarity.
 
@@ -85,7 +85,7 @@ def get_movie_recommendation(amount: int, imdb_df, netflix_df, new_movies):
     new_df = sorted_imdb_df[sorted_imdb_df['primaryTitle'].isin(new_movies['primaryTitle'])]
     rec_df = new_df.sort_values(by='mean_similarity', ascending=False)[['primaryTitle','runtimeMinutes','genres','averageRating','Director']].head(amount)
 
-    index_dict = rec_df.to_dict(orient='index')
+    index_dict = rec_df.to_dict(orient='records')
 
     return index_dict
 
