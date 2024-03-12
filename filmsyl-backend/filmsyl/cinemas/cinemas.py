@@ -26,11 +26,13 @@ def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"
                                           authorization=authorization,
                                           device_datetime=device_datetime,
                                           x_api_key=x_api_key,
-                                          cinemacount=cinemacount)
+                                          cinemacount=cinemacount,
+                                          territory=territory
+                                          )
 
         # If no cinemas are retrieved, proceed to the next credentials
         if cinemas_info is None:
-            print("Warning: No cinemas info found")
+            print(f"Warning: No cinemas info found for info lat:{lat}, long:{lng}, cinemacount:{cinemacount}, territory:{territory}")
             continue
 
         # Dictionary to store show times for each cinema
@@ -67,13 +69,14 @@ def get_nearby_cinemas(latitude: float,
                        authorization,
                        device_datetime,
                        x_api_key,
-                       territory="XX",
+                       territory="DE",
                        cinemacount=1,):
     """
     Get closeby cinemas based on userlocation
     """
     url = f"https://api-gate2.movieglu.com/cinemasNearby/?n={cinemacount}"
-    location = f"{str(latitude)};{str(longitude)}"
+    location = f"{str(round(latitude, 3))};{str(round(longitude, 3))}"
+
     headers = {
         "api-version": "v200",
         "Authorization": authorization,
@@ -83,8 +86,10 @@ def get_nearby_cinemas(latitude: float,
         "territory": territory,
         "client": "LEWA"
     }
-    print(headers)
+    print(f'headers:{headers}')
+
     response = requests.get(url, headers=headers, timeout=TIMEOUT)
+
     # Check if the response is successful
     if response.status_code == 200:
         api_response = response.json()
