@@ -10,7 +10,7 @@ import time
 import json
 
 API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
-API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
+#API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
 def main():
@@ -48,6 +48,7 @@ def main():
         display_netflix_history(response)
 
         # Display "scroll down" message again
+        st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
         display_scroll_down_message()
 
         cinemas_info = response["showings"] #data should be the json received from the api, currently we have 'repsonse' which is a
@@ -64,6 +65,7 @@ def display_title():
     """
     st.markdown("<h1 style='text-align: center;'>Ready to find films you like screening near you?</h1>", unsafe_allow_html=True)
     st.markdown("<h6 style='text-align: center; color: #808080; '>Upload your Netflix history and decide when and where to go to the cinema</h6>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
 
 def get_and_display_geolocation():
     """
@@ -108,7 +110,7 @@ def display_scroll_down_message():
     """
     Display the "scroll down" message with a grey triangle pointing down.
     """
-    st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
+    #st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
     st.markdown("<p style='text-align: center; font-size: 20px; color: #808080;'>Scroll down</p>", unsafe_allow_html=True)
     st.markdown("<div style='text-align: center;'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50' fill='#808080'><path d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/><path fill='none' d='M0 0h24v24H0z'/></svg></div>", unsafe_allow_html=True)
 
@@ -123,6 +125,7 @@ def display_netflix_history(response):
     # Display centered title
     st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)  # Add some space before the message
     st.markdown("<h1 style='text-align: center;'>Your Netflix history in numbers</h1>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
 
     # Placeholder for film numbers and favorite director
     col1, col2 = st.columns([1, 1])  # Adjust the width ratio as needed
@@ -227,6 +230,7 @@ def display_movies_recommendations():
 def create_map(latitude, longitude, cinemas_info, width=800, height=400):
     # Title before map
     st.markdown("<h1 style='text-align: center;'>Two cinemas near your show films you will love!</h1>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
     # Create a map centered around the provided latitude and longitude with custom width and height
     m = folium.Map(location=[latitude, longitude], zoom_start=2, tiles=None, width=width, height=height)
@@ -262,7 +266,7 @@ def create_map(latitude, longitude, cinemas_info, width=800, height=400):
 
 
 def show_films_in_cinemas(data):
-
+    star = '\u2605'  # Unicode character for a star
     st.markdown(f"<p style='font-size: 24px; color: black;'>These films are showing tomorrow:</p>",
                 unsafe_allow_html=True)
 
@@ -287,9 +291,9 @@ def show_films_in_cinemas(data):
 
             # Display other details on the right side
             right_column.metric(film['Film Director'], film['Film Name'])
-            right_column.write(f"<span style='color: darkgrey'>{film['Film Genre']} ‧ {film['Film Rating']}</span>",
+            right_column.write(f"<span style='color: darkgrey'>{film['Film Genre']}  ‧  {film['Film Rating']} {star}</span>",
                                unsafe_allow_html=True)
-            right_column.write(f"<span style='color: darkgrey; margin-bottom: 10px'>{film['Film Duration']}</span>",
+            right_column.write(f"<span style='color: darkgrey; margin-bottom: 10px'>{film['Film Duration']} minutes</span>",
                                unsafe_allow_html=True)
 
             # Add space between films
