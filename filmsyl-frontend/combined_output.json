@@ -1,4 +1,17 @@
 {
+  "statistics": {
+    "total_films_count": 178,
+    "genres_count": {
+      "Crime": 78,
+      "Drama": 54,
+      "Horror": 22,
+      "Romantic": 12,
+      "Magin": 2
+    },
+    "directors_count": {
+      "Francis Ford Coppola": 1
+    }
+  },
   "showings": [
       {
           "Film Name": "Raiders of the Lost Ark",
