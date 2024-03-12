@@ -6,3 +6,5 @@ streamlit_js_eval
 pandas
 plotly
 streamlit_js_eval
+folium
+streamlit_folium
