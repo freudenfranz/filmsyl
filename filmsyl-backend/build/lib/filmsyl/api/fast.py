@@ -3,14 +3,22 @@ API for films you like package.
 Paths:
     POST: /upload-netflix
 """
-from fastapi import FastAPI
+
+from typing_extensions import Annotated
+from pydantic import BaseModel
+from typing import List, Union
+
+import pandas as pd
+from fastapi import Body, FastAPI
+from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from filmsyl.netflix.netflix import get_nf_matches_from_iMDb
-
-
+from filmsyl.netflix.netflix import clean_titles, get_nf_imdb_matches
+from filmsyl.model.basemodel import get_rec
+from filmsyl.data.data import find_titles_in_imdb, get_imdb
+from filmsyl.cinemas.cinemas import get_running_movies_closeby
+from filmsyl.settings import MOVIEGLU_CREDENTIALS
 
 app = FastAPI()
-#app.state.model=load_model()
 
 # Allowing all middleware is optional, but good practice for dev purposes
 app.add_middleware(
@@ -21,56 +29,119 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-# http://127.0.0.1:8000/predict?pickup_datetime=2012-10-06 12:10:20&pickup_longitude=40.7614327&pickup_latitude=-73.9798156&dropoff_longitude=40.6513111&dropoff_latitude=-73.8803331&passenger_count=2
-@app.get("/cluster")
-def clusterize():
-    #X_pred = pd.DataFrame({
-    #        'pickup_datetime':[pd.Timestamp(pickup_datetime, tz='UTC')],
-    #        'pickup_longitude':[pickup_longitude],
-    #        'pickup_latitude':[pickup_latitude],
-    #        'dropoff_longitude':[dropoff_longitude],
-    #        'dropoff_latitude':[dropoff_latitude],
-    #        'passenger_count':[passenger_count],
-    #    }
-    #)
+app = FastAPI()
 
-    #X_processed = preprocess_features(X_pred)
-    #y_pred = app.state.model.predict(X_processed)
-    cluster1 = [
-        "movie1c1", "movie1c2", "movie1c3"
-    ]
-    cluster2 = [
-        "movie2c1", "movie2c2", "movie2c3"
-    ]
-    cluster3 = [
-        "movie3c1", "movie3c2", "movie3c3"
-    ]
-    return [cluster1, cluster2, cluster3]
+class Location(BaseModel):
+    """Location object constisting of latittude and longitude"""
+    lat: float
+    lng: float
+    countrycode: Union[str, None]
 
 
-@app.post("/upload-netflix")
-def upload_nf(netflix_json: dict) -> dict :
-    #try:
-        # Process the JSON data as needed
-        #print(f"LOG: got netflix json:\n {netflix_json}")
-        iMDb_stats = get_nf_matches_from_iMDb(netflix_json)
+class NetflixHistory(BaseModel):
+    """Descriptor for Netflix history as pandas object transmitted"""
+    Title: str
+    Date:  str
 
-        app.state.matched_rows = iMDb_stats['matched_rows']
-        return iMDb_stats
-    #except Exception as e:
-        #raise HTTPException(status_code=500, detail=str(e))
+class RecommendationBody(BaseModel):
+    """
+    Descriptor for post request body
+    """
+    location: Location
+    cinemacount: Union[int, None]
+    netflix: List[NetflixHistory]
 
-mock_nf = {
-  "Title": {
-    "0": "Uncharted",
-    "1": "The Punisher"
-  },
-  "Date": {
-    "0": "18\/02\/2024",
-    "1": "10\/02\/2024"
-  }
-}
+@app.post("/get-recommendations")
+def get_recommendations(
+    payload:
+        Annotated[
+            RecommendationBody,
+            Body(
+                examples=[
+                    {
+                        "location": {
+                            "lat": -22.0,
+                            "lng": 14.0,
+                            "countrycode": "XX",
+                        },
+                        "cinemacount": 1,
+                        "netflix": [
+                            {
+                            "Title": "The Godfather",
+                            "Date": "27/02/2024"
+                            },
+                            {
+                            "Title": "The Avatar",
+                            "Date": "22/06/2024"
+                            }
+                        ]
+                    }
+                ],
+            ),
+        ],
+    ) -> dict :
+    """
+    accepts:
+    Route accepts a json with location closeby to user and it's netflix history
+    containing  the columns 'Title' and 'Date'
+
+    returns:
+    statistical data on users watching habits
+    recommendations for cinemas/movies closeby running
+    recommendations for overall movies user could watch
+    """
+    try:
+        #print(f"✅ netflix_json.keys contains {netflix_json.keys()}")
+        #get subset of movies containing only movies from users netflix history
+        payload = payload.model_dump()
+        location = payload['location']
+        netflix_json = payload['netflix']
+        nf_df = pd.DataFrame(netflix_json)
+        imdb_stats = get_nf_imdb_matches(nf_df)
+        #get statistics on users watching habits
+
+        #get recommendations on movies user could watch from imdb list
+        imdb_df = get_imdb()
+
+        #nf_df = pd.read_json(netflix_json, orient='records')['Title']
+        cleaned = clean_titles(nf_df['Title'])
+        found = find_titles_in_imdb(cleaned, imdb_df)
+
+        recs_result = get_rec(6, imdb_df=imdb_df, netflix_df=found)
+
+        #get currently running movies in closeby cinemas
+        cine_recommendations = get_running_movies_closeby(
+            lat=float(location['lat']),
+            lng=float(location['lng']),
+            credentials=MOVIEGLU_CREDENTIALS,
+            territory= location['countrycode'] if location['countrycode'] else "XX",
+            cinemacount=payload['cinemacount']
+            )
+
+        #return all combined results
+        result = {
+            "statistics": imdb_stats['statistics'],
+            'matched_rows':imdb_stats['matched_rows'],
+            "recommendations": recs_result.to_dict(),
+            "cinerec": cine_recommendations
+        }
+
+        return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+
 
 if __name__ == '__main__':
-    nf =  upload_nf(mock_nf)
-    print(nf)
+    nf_history = pd.read_csv('./filmsyl/data/NetflixViewingHistory.csv').to_dict(orient='records')
+    body = {'location': {
+                                'lat': -22.0,
+                                'lng': 14.0
+
+                            },
+                 'netflix': nf_history
+    }
+    recs= get_recommendations(body)
+    print(recs)
