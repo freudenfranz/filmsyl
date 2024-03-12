@@ -9,8 +9,8 @@ from streamlit_folium import folium_static
 import time
 import json
 
-API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
-#API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
+#API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
+API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
 def main():
@@ -67,8 +67,8 @@ def get_and_display_geolocation():
     """
     geolocation = get_geolocation()
     if geolocation:
-        latitude = -22.0### CHANGE WHEN IN PRODUCTION geolocation['coords']['latitude']
-        longitude = 14.0### CHANGE WHEN IN PRODUCTION geolocation['coords']['longitude']
+        latitude = geolocation['coords']['latitude']
+        longitude = geolocation['coords']['longitude']
         return geolocation, latitude, longitude
     else:
         time.sleep(5)  # Adjust the delay time as needed
@@ -80,8 +80,8 @@ def upload_netflix_history(geolocation):
     Allow the user to upload their Netflix history and process the data.
     """
     if geolocation:
-        latitude = -22.0### CHANGE WHEN IN PRODUCTION geolocation['coords']['latitude']
-        longitude = 14.0### CHANGE WHEN IN PRODUCTION geolocation['coords']['longitude']
+        latitude =  geolocation['coords']['latitude']
+        longitude = geolocation['coords']['longitude']
 
         uploaded_file = st.file_uploader("To help us understand your taste, upload your Netflix history", type=['csv'])
 
@@ -257,17 +257,20 @@ def show_films_in_cinemas(data):
             break
 
 
-def send_to_api(netflix_data, latitude, longitude):
+def send_to_api(netflix_data, latitude:float, longitude:float):
+    """
+    Send data to backend
+    """
     payload = {
         "location": {
-            "lat": -22, ####### CHANGE WHEN IN PRODUCTION
-            "lng": 14,
-            "countrycode": "XX"
+            "lat": latitude, ####### CHANGE WHEN IN PRODUCTION
+            "lng": longitude,
+            "countrycode": "DE"
         },
         "cinemacount": 1,
         "netflix": netflix_data
     }
-
+    print(f"Frontend: using payload {payload}")
     #if payload["location"]["lat"] is not None:
     payload["location"]["lat"] = float(payload["location"]["lat"])
     #if payload["location"]["lng"] is not None:
