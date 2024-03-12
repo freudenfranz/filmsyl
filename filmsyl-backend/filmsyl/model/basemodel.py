@@ -83,7 +83,12 @@ def get_movie_recommendation(amount: int, imdb_df, netflix_df, new_movies):
 
     # Otherwise, recommend movies based on new_movies
     new_df = sorted_imdb_df[sorted_imdb_df['primaryTitle'].isin(new_movies['primaryTitle'])]
-    return new_df.sort_values(by='mean_similarity', ascending=False)[['primaryTitle','runtimeMinutes','genres','averageRating','Director']].head(amount)
+    rec_df = new_df.sort_values(by='mean_similarity', ascending=False)[['primaryTitle','runtimeMinutes','genres','averageRating','Director']].head(amount)
+
+    index_dict = rec_df.to_dict(orient='index')
+
+    return index_dict
+
 
 if __name__ == "__main__":
     # Example usage
