@@ -60,9 +60,9 @@ def display_netflix_history(response):
 
     col2.plotly_chart(fig)
 
-def create_map(latitude, longitude, cinemas_info):
-    # Create a map centered around the provided latitude and longitude
-    m = folium.Map(location=[latitude, longitude], zoom_start=10, tiles=None)
+def create_map(latitude, longitude, cinemas_info, width=800, height=400):
+    # Create a map centered around the provided latitude and longitude with custom width and height
+    m = folium.Map(location=[latitude, longitude], zoom_start=2, tiles=None, width=width, height=height)
 
     # Add the CartoDB Positron tile layer
     folium.TileLayer('cartodbpositron').add_to(m)
@@ -96,24 +96,9 @@ def create_map(latitude, longitude, cinemas_info):
 
 
 
+def show_films_in_cinemas(data):
 
-def main():
-    # Initialise latitude and longitude
-    latitude = -22.0
-    longitude = 14.0
-
-    # Load JSON file
-    with open('combined_output.json', 'r') as f:
-        data = json.load(f)
-
-
-    # Title before map
-    st.markdown("<h1 style='text-align: center;'>Two cinemas near your show films you will love!</h1>", unsafe_allow_html=True)
-
-    cinemas_info = data["showings"]
-
-    # Create the map
-    create_map(latitude, longitude, cinemas_info)
+    st.markdown(f"<p style='font-size: 24px; color: black;'>These films are showing tomorrow:</p>", unsafe_allow_html=True)
 
     # Keep track of films already visualized
     visualized_films = set()
@@ -145,14 +130,19 @@ def main():
             # Display screening information for this film
             for screening in data["showings"]:
                 if screening['Film Name'] == film['Film Name']:
-                    # Display cinema name and distance aligned to left, with cinema name in bold
+                    # Display cinema name, address, distance aligned to left, with cinema name in a bigger font size and bold
+                    cinema_name_html = f"<span style='font-size: 1.2em; margin-left: 100px;'>| {screening['Cinema Name']}</span> "
+                    cinema_info_html = f"<span style='color: darkgrey; font-size: 0.8em;'>{screening.get('Cinema Address', '')} ‧ {screening['Cinema Distance']:.2f} meters</span>"
                     st.write(f"<div style='display: flex; justify-content: space-between;'>"
-                                f"<b>{screening['Cinema Name']}</b> {screening['Cinema Distance']:.2f} meters"
+                                f"{cinema_name_html}{cinema_info_html}"
                                 f"<div style='text-align: right;'>"
                                 f"{screening['Start Time']}"
                                 f"</div>"
                                 f"</div>", unsafe_allow_html=True)
                     st.markdown("<br>", unsafe_allow_html=True)
+
+
+
 
             # Add space between films
             st.markdown("<br>", unsafe_allow_html=True)
@@ -161,7 +151,25 @@ def main():
         if len(visualized_films) >= 5:
             break
 
+def main():
+    # Initialise latitude and longitude
+    latitude = -22.0
+    longitude = 14.0
 
+    # Load JSON file
+    with open('combined_output.json', 'r') as f:
+        data = json.load(f)
+
+    # Title before map
+    st.markdown("<h1 style='text-align: center;'>Two cinemas near your show films you will love!</h1>", unsafe_allow_html=True)
+
+    cinemas_info = data["showings"]
+
+    # Create the map
+    create_map(latitude, longitude, cinemas_info)
+
+    # Show films in cinemas
+    show_films_in_cinemas(data)
 
 def main_2():
     # Centered title
