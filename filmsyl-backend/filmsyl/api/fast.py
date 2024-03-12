@@ -118,12 +118,14 @@ def get_recommendations(
             cinemacount=payload['cinemacount']
             )
 
+        rich_recommends = enrich_Recommendations(cine_recommendations, imdb_df)
+
         #return all combined results
         result = {
             "statistics": imdb_stats['statistics'],
             'matched_rows':imdb_stats['matched_rows'],
             "recommendations": recs_result.to_dict(),
-            "showings": cine_recommendations
+            "showings": rich_recommends
         }
 
         return result
@@ -132,14 +134,38 @@ def get_recommendations(
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
+def enrich_Recommendations(cine_recommendations:list, imdb_df: pd.DataFrame)-> list:
+    """
+    repacked dictionary to a better output
+    """
+    rec_titles = pd.DataFrame([rec['Film Name'] for rec in cine_recommendations])
+    cine_recs_in_db = imdb_df[imdb_df['primaryTitle'].isin(rec_titles[0])]
+    new_recommendations=[]
+    for rec in cine_recommendations:
+        imdb_rec = cine_recs_in_db[cine_recs_in_db['primaryTitle']==rec["Film Name"]]
+        imdb_rec = imdb_rec.head(1)
+        rec["Film Name"]=imdb_rec['title'].head(1).values[0]
+        rec["Film Director"]=imdb_rec['Director'].head(1).values[0]
+        rec["Film Rating"]=imdb_rec['averageRating'].head(1).values[0]
+        rec["Film Votes"]=imdb_rec['numVotes'].head(1).head(1).values[0]
+        rec["Film Duration"]=imdb_rec['runtimeMinutes'].head(1).values[0]
+        rec["Film Genre"]=imdb_rec['genres'].head(1).values[0]
+        rec['Start Year']=imdb_rec['startYear'].head(1).values[0]
+        rec['plot']=imdb_rec['plot'].head(1).values[0]
+        rec['mean_similarity']=imdb_rec['mean_similarity'].head(1).values[0]
+        rec["IMDB ID"]=imdb_rec['titleId'].head(1).values[0]
+
+        new_recommendations.append(rec)
+    return new_recommendations
 
 
 if __name__ == '__main__':
-    nf_history = pd.read_csv('./filmsyl/data/NetflixViewingHistory.csv')#.to_dict(orient="records")
+    nf_history = pd.read_csv('./filmsyl/data/NetflixViewingHistory.csv')
     nf_history.dropna(inplace=True)
     location = Location(lat= -22.0, lng=14.0, countrycode="XX")
 
     hist = [NetflixHistory(Title=h[1].Title, Date=h[1].Date) for h in nf_history.iterrows()]
     body = RecommendationBody(location=location,cinemacount=2, netflix=hist)
     recs= get_recommendations(body)
+
     print(recs)
