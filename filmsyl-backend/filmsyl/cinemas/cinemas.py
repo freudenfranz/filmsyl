@@ -32,6 +32,7 @@ def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"
 
 
     # Iterate over cinemas and get show times for tomorrow
+    showtimes_for_all_cinemas = []
     for cinema in cinemas_info:
         cinema_id = cinema['cinema_id']
         show_times = get_show_times(cinema_id=cinema_id,
@@ -43,9 +44,11 @@ def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"
         if show_times:
             for show_time in show_times:
                 show_time.update(cinema)
-        if show_times:
-            print("✅ got cinema/movie infos")
-            return show_times
+                showtimes_for_all_cinemas.append(show_time)
+
+    if showtimes_for_all_cinemas:
+        print("✅ got cinema/movie infos")
+        return showtimes_for_all_cinemas
 
     print("❌ Did not find any cinema/movie infos")
     return []
@@ -75,6 +78,7 @@ def get_nearby_cinemas(latitude: float,
             "territory": territory,
             "client": "LEWA"
         }
+        print(f'▶️ url:{url}')
         print(f'▶️ headers:{headers}')
 
         response = requests.get(url, headers=headers, timeout=TIMEOUT)
