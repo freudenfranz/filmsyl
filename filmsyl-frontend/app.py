@@ -1,3 +1,9 @@
+"""
+Frontend for 'films you like'
+"""
+import os
+import time
+import json
 import streamlit as st
 import pandas as pd
 import requests
@@ -6,8 +12,6 @@ from streamlit_js_eval import get_geolocation
 import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
-import time
-import json
 
 API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
 #API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
@@ -266,8 +270,11 @@ def create_map(latitude, longitude, cinemas_info, width=800, height=400):
 
 
 def show_films_in_cinemas(data):
+    """
+    Show films of movies located closeby to browsers location
+    """
     star = '\u2605'  # Unicode character for a star
-    st.markdown(f"<p style='font-size: 24px; color: black;'>These films are showing tomorrow:</p>",
+    st.markdown("<p style='font-size: 24px; color: black;'>These films are showing tomorrow:</p>",
                 unsafe_allow_html=True)
 
     # Keep track of films already visualized
@@ -279,8 +286,9 @@ def show_films_in_cinemas(data):
         if film['Film Name'] not in visualized_films:
             # Add film to the set of visualized films
             visualized_films.add(film['Film Name'])
+            filedir = os.path.dirname(os.path.abspath(__file__))
 
-            with open('style.css') as f:
+            with open(os.path.join(filedir,'style.css'), encoding="utf-8") as f:
                 st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
             # Define layout
