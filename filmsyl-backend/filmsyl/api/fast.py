@@ -127,7 +127,7 @@ def get_recommendations(
         result = {
             "statistics": imdb_stats['statistics'],
             'matched_rows':imdb_stats['matched_rows'],
-            "recommendations": recs_result.to_dict(),
+            "recommendations": recs_result,
             "showings": rich_recommends,
             "not_fonud_cine_recs": not_found
         }
