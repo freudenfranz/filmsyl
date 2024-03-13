@@ -129,13 +129,15 @@ def get_recommendations(
             recs_result = get_movie_recommendation(6, imdb_df=imdb_df, netflix_df=found, new_movies=cine_recs_in_db)
         else:
             rich_recommends= []
-            recs_result = {}
+            recs_result = []
+            not_found = []
 
         #return all combined results
         result = {
             "statistics": imdb_stats['statistics'],
             'matched_rows':imdb_stats['matched_rows'],
-            "recommendations": recs_result.to_dict(),
+            "recommendations": recs_result
+            ,
             "showings": rich_recommends,
             "not_fonud_cine_recs": not_found
         }

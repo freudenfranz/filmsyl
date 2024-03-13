@@ -30,14 +30,6 @@ def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"
                                         credentials=credentials
                                         )
 
-    # If no cinemas are retrieved, proceed to the next credentials
-    if cinemas_info is None:
-        print(f"""⚠️ Warning: No cinemas info found for info lat:{lat}, long:{lng},
-              cinemacount:{cinemacount} and territory:{territory}.
-              Returning empty handed.""")
-        return []
-
-
 
     # Iterate over cinemas and get show times for tomorrow
     for cinema in cinemas_info:
@@ -55,8 +47,7 @@ def get_running_movies_closeby(lat:float, lng:float, credentials, territory="XX"
             print("✅ got cinema/movie infos")
             return show_times
 
-    # If no successful response is obtained, return None
-    print("🚫 Tried all keys but  not get cinema/movie infos")
+    print("❌ Did not find any cinema/movie infos")
     return []
 
 def get_nearby_cinemas(latitude: float,
@@ -112,7 +103,7 @@ def get_nearby_cinemas(latitude: float,
         return cinemas_info
     else:
         print(f"❌Error. Cinema API returned status code '{response.status_code}' and reason '{response.reason}'")
-        return {}
+        return []
 
 def get_show_times( cinema_id,
                     date,
@@ -167,7 +158,7 @@ def get_show_times( cinema_id,
         return movie_infos
     else:
         print(f"▶❌Error. Cinemas api responded with code {response.status_code} for getting show times")
-        return None
+        return []
 
 # Function to parse credentials from environment variables
 def parse_credentials():
