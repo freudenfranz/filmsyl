@@ -37,7 +37,6 @@ class Location(BaseModel):
     lng: float
     countrycode: Union[str, None]
 
-
 class NetflixHistory(BaseModel):
     """Descriptor for Netflix history as pandas object transmitted"""
     Title: str
@@ -50,6 +49,13 @@ class RecommendationBody(BaseModel):
     location: Location
     cinemacount: Union[int, None]
     netflix: List[NetflixHistory]
+
+@app.get("/")
+def index():
+    """Root Endpoint"""
+    msg = {"welcome_message":"Welcome to movies you like api. "
+     "Please refer to /docs for more information"}
+    return msg
 
 @app.post("/get-recommendations")
 def get_recommendations(
@@ -116,12 +122,14 @@ def get_recommendations(
             cinemacount=payload['cinemacount']
             )
 
-        rec_titles = pd.DataFrame([rec['Film Name'] for rec in cine_recommendations])
-        cine_recs_in_db = imdb_df[imdb_df['primaryTitle'].isin(rec_titles[0])]
-
-        rich_recommends, not_found = enrich_recommendations(cine_recommendations, cine_recs_in_db)
-        recs_result = get_movie_recommendation(6, imdb_df=imdb_df, netflix_df=found, new_movies=cine_recs_in_db)
-
+        if(cine_recommendations):
+            rec_titles = pd.DataFrame([rec['Film Name'] for rec in cine_recommendations])
+            cine_recs_in_db = imdb_df[imdb_df['primaryTitle'].isin(rec_titles[0])]
+            rich_recommends, not_found = enrich_recommendations(cine_recommendations, cine_recs_in_db)
+            recs_result = get_movie_recommendation(6, imdb_df=imdb_df, netflix_df=found, new_movies=cine_recs_in_db)
+        else:
+            rich_recommends= []
+            recs_result = {}
 
         #return all combined results
         result = {

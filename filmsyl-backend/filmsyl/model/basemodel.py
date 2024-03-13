@@ -22,8 +22,10 @@ def preprocess_data(imdb_df, netflix_df):
     imdb_df['text_features'] = imdb_df['text_features'].fillna('')
 
     # Combine relevant columns and fill missing values for Netflix DataFrame
-    netflix_df['text_features'] = netflix_df['genres'] + ' ' + netflix_df['Director']
-    netflix_df['text_features'] = netflix_df['text_features'].fillna('')
+    netflix_df.loc[:,'text_features'] = netflix_df['genres'] + ' ' + netflix_df['Director']
+    netflix_df.loc[:,'text_features'] = netflix_df['text_features'].fillna('')
+    #netflix_df['text_features'] = netflix_df['genres'] + ' ' + netflix_df['Director']
+    #netflix_df['text_features'] = netflix_df['text_features'].fillna('')
 
     return imdb_df, netflix_df
 

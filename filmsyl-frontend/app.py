@@ -13,8 +13,8 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
-API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
-#API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
+#API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
+API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
 def main():
@@ -338,12 +338,12 @@ def send_to_api(netflix_data, latitude:float, longitude:float):
     """
     payload = {
         "location": {
-            #"lat": latitude,
-            #"lng": longitude,
-            #"countrycode": "DE"
-            "lat": -22, ####### CHANGE WHEN IN PRODUCTION
-            "lng": 14,
-            "countrycode": "XX"
+            "lat": latitude,
+            "lng": longitude,
+            "countrycode": "DE"
+            #"lat": -22, ####### CHANGE WHEN IN PRODUCTION
+            #"lng": 14,
+            #"countrycode": "XX"
         },
         "cinemacount": 1,
         "netflix": netflix_data
