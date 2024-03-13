@@ -13,8 +13,8 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
-#API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
-API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
+API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
+#API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
 def main():
@@ -22,10 +22,16 @@ def main():
     display_title()
 
     # Get and display geolocation
-    geolocation, latitude, longitude = get_and_display_geolocation()
+    latitude, longitude = get_and_display_geolocation()
+    if not latitude or not longitude:
+        latitude = -22
+        longitude = 14
+        countrycode= "XX"
+    else:
+        countrycode = "DE"
 
     # Upload Netflix history
-    df = upload_netflix_history(geolocation)
+    df = upload_netflix_history(latitude, longitude)
 
     # Process Netflix data
     netflix_data = process_netflix_data(df)
@@ -35,7 +41,7 @@ def main():
         st.markdown("<br><br><br>", unsafe_allow_html=True)  # Add some space before the spinner
         with st.spinner("We are trying to understand your weird taste..."):
             # Send data to API and get response
-            response = send_to_api(netflix_data, latitude, longitude)
+            response = send_to_api(netflix_data, latitude, longitude, countrycode)
 
         # Load JSON file
         #with open('combined_output.json', 'r') as f:
@@ -79,19 +85,17 @@ def get_and_display_geolocation():
     if geolocation:
         latitude = geolocation['coords']['latitude']
         longitude = geolocation['coords']['longitude']
-        return geolocation, latitude, longitude
+        return latitude, longitude
     else:
         time.sleep(5)  # Adjust the delay time as needed
         st.warning("Please allow geolocation for this app to work")
-        return None, None, None
+        return None, None
 
-def upload_netflix_history(geolocation):
+def upload_netflix_history(latitude, longitude):
     """
     Allow the user to upload their Netflix history and process the data.
     """
-    if geolocation:
-        latitude =  geolocation['coords']['latitude']
-        longitude = geolocation['coords']['longitude']
+    if latitude and longitude:
 
         uploaded_file = st.file_uploader("To help us understand your taste, upload your Netflix history below:", type=['csv'])
 
@@ -397,22 +401,20 @@ def show_films_in_cinemas(data):
         if len(visualized_films) >= 5:
             break
 
-def send_to_api(netflix_data, latitude:float, longitude:float):
+def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
     """
     Send data to backend
     """
     payload = {
         "location": {
-            #"lat": latitude,
-            #"lng": longitude,
-            "countrycode": "DE",
-            "lat": 52.499067, ####### CHANGE WHEN IN PRODUCTION
-            "lng": 13.4157548,
-            #"countrycode": "XX"
+            "lat": latitude,
+            "lng": longitude,
+            "countrycode": countrycode
         },
         "cinemacount": 3,
         "netflix": netflix_data
     }
+
     print(f"Frontend: using payload {payload}")
     #if payload["location"]["lat"] is not None:
     payload["location"]["lat"] = float(payload["location"]["lat"])
@@ -421,7 +423,7 @@ def send_to_api(netflix_data, latitude:float, longitude:float):
     response = requests.post(API_ENDPOINT, json=payload, timeout=160)
 
     if response.status_code == 200:
-        st.write(response.json())
+        #st.write(response.json())
         pass
         #st.success("Data sent to API successfully!")
     else:
