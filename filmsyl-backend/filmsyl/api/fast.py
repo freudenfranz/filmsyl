@@ -133,11 +133,11 @@ def get_recommendations(
             not_found = []
 
         #return all combined results
+
         result = {
             "statistics": imdb_stats['statistics'],
             'matched_rows':imdb_stats['matched_rows'],
-            "recommendations": recs_result
-            ,
+            "recommendations": recs_result,
             "showings": rich_recommends,
             "not_fonud_cine_recs": not_found
         }

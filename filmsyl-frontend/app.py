@@ -126,6 +126,8 @@ def display_netflix_history(response):
     Parameters:
         response (dict): API response containing Netflix history statistics.
     """
+    if not response:
+        return
     # Display centered title
     st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)  # Add some space before the message
     st.markdown("<h1 style='text-align: center;'>Your Netflix history in numbers</h1>", unsafe_allow_html=True)
@@ -282,6 +284,7 @@ def show_films_in_cinemas(data):
 
     # Iterate over films and visualize the first 5 unique films
     for film in data["showings"]:
+
         # Check if the film has already been visualized
         if film['Film Name'] not in visualized_films:
             # Add film to the set of visualized films
@@ -295,31 +298,35 @@ def show_films_in_cinemas(data):
             left_column, right_column = st.columns([1, 3])
 
             # Display smaller image of the film on the left side
-            left_column.image(film["Poster"], width=100)
+            if "Poster" in film.keys() and film["Poster"]:
+                left_column.image(film["Poster"], width=100)
 
             # Display other details on the right side
-            right_column.metric(film['Film Director'], film['Film Name'])
-            right_column.write(f"<span style='color: darkgrey'>{film['Film Genre']}  ‧  {film['Film Rating']} {star}</span>",
+            if ('Film Director'in film.keys()) and ('Film Name'in film.keys()):
+                right_column.write(f"<span style='color: darkgrey'>{film['Film Genre']}  ‧  {film['Film Rating']} {star}</span>",
                                unsafe_allow_html=True)
-            right_column.write(f"<span style='color: darkgrey; margin-bottom: 10px'>{film['Film Duration']} minutes</span>",
+            if 'Film Duration' in film.keys():
+                right_column.write(f"<span style='color: darkgrey; margin-bottom: 10px'>{film['Film Duration']} minutes</span>",
                                unsafe_allow_html=True)
 
             # Add space between films
             st.markdown("<br>", unsafe_allow_html=True)
-
-            # Display screening information for this film
-            for screening in data["showings"]:
-                if screening['Film Name'] == film['Film Name']:
-                    # Display cinema name, address, distance aligned to left, with cinema name in a bigger font size and bold
-                    cinema_name_html = f"<span style='font-size: 1.2em; margin-left: 100px;'>| {screening['Cinema Name']}</span> "
-                    cinema_info_html = f"<span style='color: darkgrey; font-size: 0.8em;'>{screening.get('Cinema Address', '')} ‧ {screening['Cinema Distance']:.2f} meters</span>"
-                    st.write(f"<div style='display: flex; justify-content: space-between;'>"
-                                f"{cinema_name_html}{cinema_info_html}"
-                                f"<div style='text-align: right;'>"
-                                f"{screening['Start Time']}"
-                                f"</div>"
-                                f"</div>", unsafe_allow_html=True)
-                    st.markdown("<br>", unsafe_allow_html=True)
+            breakpoint()
+            if 'showings' in data.keys():
+                # Display screening information for this film
+                for screening in data["showings"]:
+                    if ('Film Name' in screening.keys()) and ('Cinema Name' in screening.keys()) and ('Cinema Address' in screening.keys()) and ('Cinema Distance'in screening.keys()):
+                        if screening['Film Name'] == film['Film Name']:
+                            # Display cinema name, address, distance aligned to left, with cinema name in a bigger font size and bold
+                            cinema_name_html = f"<span style='font-size: 1.2em; margin-left: 100px;'>| {screening['Cinema Name']}</span> "
+                            cinema_info_html = f"<span style='color: darkgrey; font-size: 0.8em;'>{screening.get('Cinema Address', '')} ‧ {screening['Cinema Distance']:.2f} meters</span>"
+                            st.write(f"<div style='display: flex; justify-content: space-between;'>"
+                                        f"{cinema_name_html}{cinema_info_html}"
+                                        f"<div style='text-align: right;'>"
+                                        f"{screening['Start Time']}"
+                                        f"</div>"
+                                        f"</div>", unsafe_allow_html=True)
+                            st.markdown("<br>", unsafe_allow_html=True)
 
 
 
@@ -353,9 +360,10 @@ def send_to_api(netflix_data, latitude:float, longitude:float):
     payload["location"]["lat"] = float(payload["location"]["lat"])
     payload["location"]["lng"] = float(payload["location"]["lng"])
 
-    response = requests.post(API_ENDPOINT, json=payload, timeout=40)
+    response = requests.post(API_ENDPOINT, json=payload, timeout=160)
 
     if response.status_code == 200:
+        st.write(response.json())
         pass
         #st.success("Data sent to API successfully!")
     else:
