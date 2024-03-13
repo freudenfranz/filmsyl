@@ -9,8 +9,8 @@ from streamlit_folium import folium_static
 import time
 import json
 
-API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
-#API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
+#API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
+API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
 def main():
@@ -40,13 +40,10 @@ def main():
         # Display "scroll down" message
         #display_scroll_down_message()
 
-        #display_movies_recommendations()
-
         # Display "scroll down" message
         display_scroll_down_message()
         # Display Netflix history
         display_netflix_history(response)
-
         # Display "scroll down" message again
         st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
         display_scroll_down_message()
@@ -59,12 +56,15 @@ def main():
         # Show films in cinemas
         show_films_in_cinemas(response)
 
+        #display_movies_recommendations()
+        display_movies_recommendations(response['recommendations'])
+
 def display_title():
     """
     Display the centered title for the app.
     """
     st.markdown("<h1 style='text-align: center;'>Ready to find films you like screening near you?</h1>", unsafe_allow_html=True)
-    st.markdown("<h6 style='text-align: center; color: #808080; '>Upload your Netflix history and decide when and where to go to the cinema</h6>", unsafe_allow_html=True)
+    st.markdown("<h6 style='text-align: center; color: #808080; '>Upload your Netflix history and select your cinema or home viewing.</h6>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
 
 def get_and_display_geolocation():
@@ -89,7 +89,7 @@ def upload_netflix_history(geolocation):
         latitude =  geolocation['coords']['latitude']
         longitude = geolocation['coords']['longitude']
 
-        uploaded_file = st.file_uploader("To help us understand your taste, upload your Netflix history", type=['csv'])
+        uploaded_file = st.file_uploader("To help us understand your taste, upload your Netflix history below:", type=['csv'])
 
         if uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
@@ -113,7 +113,6 @@ def display_scroll_down_message():
     #st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
     st.markdown("<p style='text-align: center; font-size: 20px; color: #808080;'>Scroll down</p>", unsafe_allow_html=True)
     st.markdown("<div style='text-align: center;'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50' fill='#808080'><path d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/><path fill='none' d='M0 0h24v24H0z'/></svg></div>", unsafe_allow_html=True)
-
 
 def display_netflix_history(response):
     """
@@ -171,16 +170,8 @@ def display_netflix_history(response):
 
     col2.plotly_chart(fig)
 
-
-def display_movies_recommendations():
+def display_movies_recommendations(recommendations:dict):
     try:
-        # Load JSON file
-        with open('combined_output.json', 'r') as f:
-            data = json.load(f)
-
-        # Get the movie recommendations from the JSON data
-        recommendations = data.get('recommendations', [])
-
         if recommendations:
             # Initialize lists to store movie information
             titles = []
@@ -191,17 +182,19 @@ def display_movies_recommendations():
 
             # Extract movie information
             for movie in recommendations:
-                titles.append(movie.get('Film Name', ''))
-                genres.append(movie.get('Film Genre', ''))
-                directors.append(movie.get('Film Director', ''))
-                durations.append(movie.get('Film Duration', ''))
-                rating = movie.get('Film Rating', '')
-                rating_emoji = '⭐️' * int(float(rating.split()[0]))
+                titles.append(movie.get('primaryTitle', ''))
+                genre_str = movie.get('genres', '')
+                genre_list = [genre.strip() for genre in genre_str.split(',')]
+                genres.append(', '.join(genre_list))
+                directors.append(movie.get('Director', ''))
+                durations.append(f"{movie.get('runtimeMinutes', '')} minutes")
+                rating = movie.get('averageRating', '')
+                rating_emoji = '★'
                 ratings.append(f"{rating} {rating_emoji}")
 
             # Create DataFrame for all movie recommendations
             df = pd.DataFrame({
-                "Title": titles,
+                "Movie title": titles,
                 "Genre": genres,
                 "Director": directors,
                 "Duration": durations,
@@ -215,12 +208,13 @@ def display_movies_recommendations():
             styles = [
                 dict(selector="th", props=[("font-size", "120%"),
                                             ("text-align", "center")]),
-                dict(selector="thead tr th", props=[("background-color", "blue"),  # Apply to the first row of headers
+                dict(selector="thead tr th", props=[("background-color", "gray"),  # Apply to the first row of headers
                                                      ("color", "white")])
             ]
 
             # Display the DataFrame as a single table
-            st.markdown("<h1 style='text-align: center;'>Movie recommendations</h1>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center;'>Prefer the couch over the cinema?</h1>", unsafe_allow_html=True)
+            st.markdown("<h4 style='text-align: center;'>Enjoy these recommended films from the comfort of home!</h4>", unsafe_allow_html=True)
             st.table(df.style.set_table_styles(styles))
         else:
             st.error("No movie recommendations found in the data.")
@@ -267,7 +261,7 @@ def create_map(latitude, longitude, cinemas_info, width=800, height=400):
 
 def show_films_in_cinemas(data):
     star = '\u2605'  # Unicode character for a star
-    st.markdown(f"<p style='font-size: 24px; color: black;'>These films are showing tomorrow:</p>",
+    st.markdown(f"<h2 style='font-size: 24px; color: black;'>Check out tomorrow's lineup:</h2>",
                 unsafe_allow_html=True)
 
     # Keep track of films already visualized
