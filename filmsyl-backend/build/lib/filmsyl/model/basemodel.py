@@ -22,8 +22,10 @@ def preprocess_data(imdb_df, netflix_df):
     imdb_df['text_features'] = imdb_df['text_features'].fillna('')
 
     # Combine relevant columns and fill missing values for Netflix DataFrame
-    netflix_df['text_features'] = netflix_df['genres'] + ' ' + netflix_df['Director']
-    netflix_df['text_features'] = netflix_df['text_features'].fillna('')
+    netflix_df.loc[:,'text_features'] = netflix_df['genres'] + ' ' + netflix_df['Director']
+    netflix_df.loc[:,'text_features'] = netflix_df['text_features'].fillna('')
+    #netflix_df['text_features'] = netflix_df['genres'] + ' ' + netflix_df['Director']
+    #netflix_df['text_features'] = netflix_df['text_features'].fillna('')
 
     return imdb_df, netflix_df
 
@@ -75,29 +77,27 @@ def get_movie_recommendation(amount: int, imdb_df, netflix_df, new_movies):
     imdb_df, netflix_df = preprocess_data(imdb_df, netflix_df)
 
     # Calculate similarity between IMDb and Netflix movies
-    imdb_df = calculate_similarity(imdb_df, netflix_df)
+    sorted_imdb_df = calculate_similarity(imdb_df, netflix_df)
 
-    # Recommend movies based on new_movies
-    if new_movies:
-        new_df = imdb_df[imdb_df['primaryTitle'].isin(new_movies['Title'])]
-        return new_df.\
-            sort_values(by='mean_similarity', ascending=False)['primaryTitle'].\
-            head(amount)
-    else:
     # If new_movies list is empty, recommend top movies based on mean similarity
-        return imdb_df[
-            ~imdb_df['primaryTitle'].\
-            isin(netflix_df['title'])].\
-            sort_values(by='mean_similarity', ascending=False)['primaryTitle'].\
-            head(amount)
-        #return imdb_df.sort_values(by='mean_similarity', ascending=False)['primaryTitle'].head(amount)
+    if new_movies.empty:
+        return sorted_imdb_df.sort_values(by='mean_similarity', ascending=False)['primaryTitle'].head(amount)
+
+    # Otherwise, recommend movies based on new_movies
+    new_df = sorted_imdb_df[sorted_imdb_df['primaryTitle'].isin(new_movies['primaryTitle'])]
+    rec_df = new_df.sort_values(by='mean_similarity', ascending=False)[['primaryTitle','runtimeMinutes','genres','averageRating','Director']].head(amount)
+
+    index_dict = rec_df.to_dict(orient='records')
+
+    return index_dict
 
 
 if __name__ == "__main__":
     # Example usage
     imdb_df = get_imdb()
     netflix_df = get_netflix_example()
-    new_movies = pd.DataFrame({})  # Define new_movies DataFrame
+    new_movies = imdb_df.copy().head(10)  # Define new_movies DataFrame
+    print(new_movies)
     amount = int(input("Enter the number of movies you want to be recommended: "))
     recommendations = get_movie_recommendation(amount, imdb_df, netflix_df, new_movies)
     print(recommendations)

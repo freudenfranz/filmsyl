@@ -22,8 +22,10 @@ def preprocess_data(imdb_df, netflix_df):
     imdb_df['text_features'] = imdb_df['text_features'].fillna('')
 
     # Combine relevant columns and fill missing values for Netflix DataFrame
-    netflix_df['text_features'] = netflix_df['genres'] + ' ' + netflix_df['Director']
-    netflix_df['text_features'] = netflix_df['text_features'].fillna('')
+    netflix_df.loc[:,'text_features'] = netflix_df['genres'] + ' ' + netflix_df['Director']
+    netflix_df.loc[:,'text_features'] = netflix_df['text_features'].fillna('')
+    #netflix_df['text_features'] = netflix_df['genres'] + ' ' + netflix_df['Director']
+    #netflix_df['text_features'] = netflix_df['text_features'].fillna('')
 
     return imdb_df, netflix_df
 
@@ -79,7 +81,9 @@ def get_movie_recommendation(amount: int, imdb_df, netflix_df, new_movies):
 
     # If new_movies list is empty, recommend top movies based on mean similarity
     if new_movies.empty:
-        return sorted_imdb_df.sort_values(by='mean_similarity', ascending=False)['primaryTitle'].head(amount)
+        return sorted_imdb_df.sort_values(by='mean_similarity', ascending=False)[['primaryTitle','runtimeMinutes','genres','averageRating','Director']].\
+            head(amount).\
+            to_dict(orient='records')
 
     # Otherwise, recommend movies based on new_movies
     new_df = sorted_imdb_df[sorted_imdb_df['primaryTitle'].isin(new_movies['primaryTitle'])]
