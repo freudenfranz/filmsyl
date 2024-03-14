@@ -141,7 +141,6 @@ def get_recommendations(
             "showings": rich_recommends,
             "not_fonud_cine_recs": not_found
         }
-        breakpoint()
         return result
 
     except Exception as e:

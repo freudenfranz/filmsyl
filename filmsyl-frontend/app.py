@@ -3,18 +3,16 @@ Frontend for 'films you like'
 """
 import os
 import time
-import json
 import streamlit as st
 import pandas as pd
 import requests
 import plotly.graph_objects as go
 from streamlit_js_eval import get_geolocation
 import folium
-from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
-API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
-#API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
+#API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
+API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
 def main():
@@ -28,6 +26,8 @@ def main():
         longitude = 14
         countrycode= "XX"
     else:
+        latitude = 52.5092312
+        longitude = 13.3735304
         countrycode = "DE"
 
     # Upload Netflix history
@@ -89,6 +89,7 @@ def get_and_display_geolocation():
     else:
         time.sleep(5)  # Adjust the delay time as needed
         st.warning("Please allow geolocation for this app to work")
+        st.warning("If geolocation is not allowed we will use a testlocation")
         return None, None
 
 def upload_netflix_history(latitude, longitude):
@@ -129,7 +130,7 @@ def display_netflix_history(response):
     Parameters:
         response (dict): API response containing Netflix history statistics.
     """
-    if not response:
+    if not response or ('statistics' not in response.keys()) :
         return
     # Display centered title
     st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)  # Add some space before the message
@@ -268,7 +269,6 @@ def create_map(latitude, longitude, cinemas_info, width=800, height=400):
     # Display the map
     folium_static(m)
 
-
 def show_films_in_cinemas1(data):
     """
     Show films of movies located closeby to browsers location
@@ -310,7 +310,7 @@ def show_films_in_cinemas1(data):
 
             # Add space between films
             st.markdown("<br>", unsafe_allow_html=True)
-            breakpoint()
+
             if 'showings' in data.keys():
                 # Display screening information for this film
                 for screening in data["showings"]:
@@ -411,7 +411,7 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
             "lng": longitude,
             "countrycode": countrycode
         },
-        "cinemacount": 3,
+        "cinemacount": 1,
         "netflix": netflix_data
     }
 

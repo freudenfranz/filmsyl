@@ -68,6 +68,7 @@ def get_nearby_cinemas(latitude: float,
 
     ##loop through all credentials until one works
     response = 0
+
     for authorization, x_api_key in credentials:
         headers = {
             "api-version": "v200",
@@ -79,11 +80,15 @@ def get_nearby_cinemas(latitude: float,
             "client": "LEWA"
         }
         print(f'▶️ url:{url}')
-        print(f'▶️ headers:{headers}')
+        print(f'▶️ headers:{headers}\n')
 
         response = requests.get(url, headers=headers, timeout=TIMEOUT)
+
         if response.status_code == 200:
+            print(f"✅ Found working key {x_api_key}")
             break
+        else:
+            print(f"❌Error. Key {x_api_key} returned status code '{response.status_code}'('{response.reason}')")
 
     # Check if the response is successful
     if response.status_code == 200:
@@ -106,7 +111,7 @@ def get_nearby_cinemas(latitude: float,
 
         return cinemas_info
     else:
-        print(f"❌Error. Cinema API returned status code '{response.status_code}' and reason '{response.reason}'")
+        print("❌Error. No Cinema API could be found'")
         return []
 
 def get_show_times( cinema_id,
