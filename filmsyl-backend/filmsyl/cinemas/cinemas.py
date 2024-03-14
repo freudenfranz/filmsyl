@@ -148,22 +148,41 @@ def get_show_times( cinema_id,
         for movie in api_response['films']:
             for showing in movie["showings"]["Standard"]["times"]:
                 try:
+                    cinema_id = api_response['cinema']['cinema_id']
+                except TypeError:
+                    print(f"❌Error. Could not find cinema id for showing {showing}'")
+                    cinema_id = None
+                try:
+                    film_name = movie['film_name']
+                except TypeError:
+                    print(f"❌Error. Could not find film name for showing {showing}'")
+                    film_name = None
+                try:
                     poster = movie['images']['poster']['1']['medium']['film_image'],
                 except TypeError:
+                    print(f"❌Error. Could not find poster for showing {showing}'")
                     poster = None
                 try:
-                    movie_info = {
-                        'cinema_id': api_response['cinema']['cinema_id'],
-                        'Film Name': movie['film_name'],
-                        'Poster': poster,
-                        "Start Time": showing["start_time"],
-                        "End Time": showing["end_time"],
-                        "Date": date
-                    }
+                    start_time = showing["start_time"]
                 except TypeError:
-                    print(f"❌Error. One of the values could not be found for cinema '{movie}'")
-                    movie_info = {}
-            movie_infos.append(movie_info)
+                    print(f"❌Error. Could not find start timefor showing {showing}'")
+                    start_time = None
+                try:
+                    stop_time = showing["end_time"]
+                except TypeError:
+                    print(f"❌Error. Could not find stop time for showing {showing}'")
+                    stop_time = None
+
+                movie_info = {
+                    'cinema_id': cinema_id,
+                    'Film Name': film_name,
+                    'Poster': poster,
+                    "Start Time": start_time,
+                    "End Time": stop_time,
+                    "Date": date
+                }
+
+                movie_infos.append(movie_info)
         return movie_infos
     else:
         print(f"▶❌Error. Cinemas api responded with code {response.status_code} for getting show times")

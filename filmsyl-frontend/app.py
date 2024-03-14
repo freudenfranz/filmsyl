@@ -26,8 +26,8 @@ def main():
         longitude = 14
         countrycode= "XX"
     else:
-        latitude = 52.5092312
-        longitude = 13.3735304
+        #latitude = 52.5092312
+        #longitude = 13.3735304
         countrycode = "DE"
 
     # Upload Netflix history
@@ -352,6 +352,7 @@ def show_films_in_cinemas(data):
     for film in data.get("showings", []):  # Handle incomplete or missing data["showings"]
         if not film:
             pass
+
         # Check if the film has already been visualized
         if film.get('Film Name') not in visualized_films:  # Use .get() to handle missing keys
             # Add film to the set of visualized films
@@ -369,8 +370,10 @@ def show_films_in_cinemas(data):
             if film.get("Poster"):
                 left_column.image(film.get("Poster"), width=100)
 
+
             # Display other details on the right side
             if film.get('Film Genre') and film.get('Film Rating'):
+                right_column.metric(film['Film Director'], film['Film Name'])
                 right_column.write(f"<span style='color: darkgrey'>{film['Film Genre']}  ‧  {film['Film Rating']} {star}</span>",
                                    unsafe_allow_html=True)
             if film.get('Film Duration'):
