@@ -11,7 +11,8 @@ from streamlit_js_eval import get_geolocation
 import folium
 from streamlit_folium import folium_static
 
-API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
+#API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
+API_ENDPOINT = "https://films-you-like-2h7mcggcwa-ew.a.run.app/get-recommendations"
 #API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
