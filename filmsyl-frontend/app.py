@@ -22,7 +22,7 @@ def main():
 
     # Get and display geolocation
     latitude, longitude = get_and_display_geolocation()
-    if not latitude or not longitude:
+    if (not latitude) or (not longitude):
         latitude = -22
         longitude = 14
         countrycode= "XX"
@@ -418,12 +418,8 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
         "cinemacount": 3,
         "netflix": netflix_data
     }
-
-    print(f"Frontend: using payload {payload}")
-    #if payload["location"]["lat"] is not None:
-    payload["location"]["lat"] = float(payload["location"]["lat"])
-    payload["location"]["lng"] = float(payload["location"]["lng"])
-
+    #print(f"Frontend: using payload {payload}")
+    print(f'using location lat:{latitude}, long: {longitude} for {countrycode}')
     response = requests.post(API_ENDPOINT, json=payload, timeout=160)
 
     if response.status_code == 200:
