@@ -51,11 +51,24 @@ def get_user_stats(df):
     # Sort director counts in descending order of frequency
     directors_count_dict = dict(sorted(directors_count_dict.items(), key=lambda item: item[1], reverse=True))
 
+    try:
+        total_minutes_watched = pd.to_numeric(df['runtimeMinutes']).sum()
+        years_count = pd.to_numeric(df['startYear'])\
+                .groupby((pd.to_numeric(df['startYear'])//10)*10)\
+                .sum().astype(int).to_list()
+    except:
+        print('had a problem calculating total minutes or years count')
+        total_minutes_watched = 0
+        years_count = []
+
     stats = {
         'total_films_count': total_films_count,
         'genres_count': genres_count_dict,
-        'directors_count': directors_count_dict
+        'directors_count': directors_count_dict,
+        'total_minutes_watched': total_minutes_watched,
+        'years_count': years_count
     }
+
 
     return stats
 
