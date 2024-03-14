@@ -4,6 +4,7 @@ Frontend for 'films you like'
 import os
 import json
 import streamlit as st
+import matplotlib.pyplot as plt
 import pandas as pd
 import requests
 import plotly.graph_objects as go
@@ -13,7 +14,7 @@ from streamlit_folium import folium_static
 
 API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
 #API_ENDPOINT = "https://films-you-like-2h7mcggcwa-ew.a.run.app/get-recommendations"
-#API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
+API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
 def main(json_data):
@@ -21,15 +22,7 @@ def main(json_data):
     display_title()
 
     # Get and display geolocation
-    latitude, longitude = get_and_display_geolocation()
-    if (not latitude) or (not longitude):
-        latitude = -22 # 52.5092312
-        longitude = 14 #13.3735304
-        countrycode= "XX"
-    else:
-        #latitude = 52.5092312
-        #longitude = 13.3735304
-        countrycode = "DE"
+    latitude, longitude, countrycode = get_and_display_geolocation(use_postdammer_platz=False)
 
     # Upload Netflix history
     if not json_data:
@@ -48,18 +41,12 @@ def main(json_data):
             else:
                 response = send_to_api(netflix_data, latitude, longitude, countrycode)
 
-        # Load JSON file
-        #with open('combined_output.json', 'r') as f:
-        #    response = json.load(f)
-
-        # Display "scroll down" message
-        #display_scroll_down_message()
-
         # Display "scroll down" message
         display_scroll_down_message()
+
         # Display Netflix history
-        display_netflix_history(response)
-        # Display "scroll down" message again
+        display_netflix_stats(response)
+
         st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
         display_scroll_down_message()
 
@@ -82,20 +69,27 @@ def display_title():
     st.markdown("<h6 style='text-align: center; color: #808080; '>Upload your Netflix history and select your cinema or home viewing.</h6>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
 
-def get_and_display_geolocation():
+def get_and_display_geolocation(use_postdammer_platz=False):
     """
     Get geolocation and display warning if not available.
     """
+    if use_postdammer_platz:
+        latitude = 52.5092312
+        longitude = 13.3735304
+        countrycode = "DE"
+        return latitude, longitude, countrycode
+
     geolocation = get_geolocation()
     if geolocation:
         latitude = geolocation['coords']['latitude']
         longitude = geolocation['coords']['longitude']
-        return latitude, longitude
+        countrycode = "DE"
+        return latitude, longitude, countrycode
     else:
         #time.sleep(5)  # Adjust the delay time as needed
         st.warning("Please allow geolocation for this app to work")
         st.warning("If geolocation is not allowed we will use a testlocation")
-        return None, None
+        return -22., 14., "XX"
 
 def upload_netflix_history(latitude, longitude):
     """
@@ -128,7 +122,7 @@ def display_scroll_down_message():
     st.markdown("<p style='text-align: center; font-size: 20px; color: #808080;'>Scroll down</p>", unsafe_allow_html=True)
     st.markdown("<div style='text-align: center;'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50' fill='#808080'><path d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/><path fill='none' d='M0 0h24v24H0z'/></svg></div>", unsafe_allow_html=True)
 
-def display_netflix_history(response):
+def display_netflix_stats(response):
     """
     Display Netflix history statistics.
 
@@ -185,6 +179,30 @@ def display_netflix_history(response):
     )
 
     col2.plotly_chart(fig)
+    display_more_netflix_stats(response['statistics'])
+
+def display_more_netflix_stats(stats):
+    """
+    Display additional Netflix history statistics.
+
+    Parameters:
+        response (dict): API response containing Netflix history statistics.
+    """
+    years_seen = stats.get('years_count', None)
+    hours_watched = stats.get('total_minutes_watched', None)
+
+    if not years_seen or not hours_watched:
+        return
+    else:
+        hours_watched = stats.get('total_minutes_watched', None)/60
+    # Display centered title
+    st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
+    st.header(f"You wached juicy {f'{int(hours_watched/24)} days and {int(hours_watched%24)} hours' if hours_watched > 24 else '{hours_watched}hours'} of movies from these decades:")
+
+    # Filter the DataFrame to include only non-missing values in 'startYear' column
+    years_seen_df = pd.DataFrame.from_dict(years_seen,orient='index')
+    st.bar_chart(years_seen_df)
+
 
 def display_movies_recommendations(recommendations:dict):
     """
@@ -413,7 +431,7 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
 
 if __name__ == "__main__":
     try:
-        with open('./REMOVE_TO_TESTapi_mock_response.json', encoding='utf-8') as json_file:
+        with open('./api_mock_response.json', encoding='utf-8') as json_file:
             d = json.load(json_file)
     except FileNotFoundError as error:
         #print('No debug file found using production version')
