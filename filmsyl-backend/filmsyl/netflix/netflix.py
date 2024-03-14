@@ -52,10 +52,10 @@ def get_user_stats(df):
     directors_count_dict = dict(sorted(directors_count_dict.items(), key=lambda item: item[1], reverse=True))
 
     try:
-        total_minutes_watched = pd.to_numeric(df['runtimeMinutes']).sum()
-        years_count = pd.to_numeric(df['startYear'])\
-                .groupby((pd.to_numeric(df['startYear'])//10)*10)\
-                .sum().astype(int).to_list()
+        total_minutes_watched = pd.to_numeric(df['runtimeMinutes']).sum().item()
+        start_years = pd.to_numeric(df['startYear']).astype(int)
+        gr_filter = (pd.to_numeric(df['startYear']).astype(int)//10)*10
+        years_count = start_years.groupby(gr_filter).sum().to_list()
     except:
         print('had a problem calculating total minutes or years count')
         total_minutes_watched = 0
