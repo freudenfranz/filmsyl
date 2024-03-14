@@ -2,7 +2,7 @@
 Frontend for 'films you like'
 """
 import os
-import time
+import json
 import streamlit as st
 import pandas as pd
 import requests
@@ -11,20 +11,20 @@ from streamlit_js_eval import get_geolocation
 import folium
 from streamlit_folium import folium_static
 
-#API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
-API_ENDPOINT = "https://films-you-like-2h7mcggcwa-ew.a.run.app/get-recommendations"
+API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
+#API_ENDPOINT = "https://films-you-like-2h7mcggcwa-ew.a.run.app/get-recommendations"
 #API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
-def main():
+def main(json_data):
     # Display centered title
     display_title()
 
     # Get and display geolocation
     latitude, longitude = get_and_display_geolocation()
     if (not latitude) or (not longitude):
-        latitude = -22
-        longitude = 14
+        latitude = -22 # 52.5092312
+        longitude = 14 #13.3735304
         countrycode= "XX"
     else:
         #latitude = 52.5092312
@@ -32,17 +32,21 @@ def main():
         countrycode = "DE"
 
     # Upload Netflix history
-    df = upload_netflix_history(latitude, longitude)
+    if not json_data:
+        df = upload_netflix_history(latitude, longitude)
 
-    # Process Netflix data
-    netflix_data = process_netflix_data(df)
+        # Process Netflix data
+        netflix_data = process_netflix_data(df)
 
-    if netflix_data:
+    if json_data or netflix_data :
         # Display a spinner while waiting for the API response
         st.markdown("<br><br><br>", unsafe_allow_html=True)  # Add some space before the spinner
         with st.spinner("We are trying to understand your weird taste..."):
             # Send data to API and get response
-            response = send_to_api(netflix_data, latitude, longitude, countrycode)
+            if json_data:
+                response = json_data
+            else:
+                response = send_to_api(netflix_data, latitude, longitude, countrycode)
 
         # Load JSON file
         #with open('combined_output.json', 'r') as f:
@@ -88,7 +92,7 @@ def get_and_display_geolocation():
         longitude = geolocation['coords']['longitude']
         return latitude, longitude
     else:
-        time.sleep(5)  # Adjust the delay time as needed
+        #time.sleep(5)  # Adjust the delay time as needed
         st.warning("Please allow geolocation for this app to work")
         st.warning("If geolocation is not allowed we will use a testlocation")
         return None, None
@@ -183,6 +187,9 @@ def display_netflix_history(response):
     col2.plotly_chart(fig)
 
 def display_movies_recommendations(recommendations:dict):
+    """
+    show recommendations for movies
+    """
     try:
         if recommendations:
             # Initialize lists to store movie information
@@ -234,6 +241,7 @@ def display_movies_recommendations(recommendations:dict):
         st.error("File 'combined_output.json' not found.")
 
 def create_map(latitude, longitude, cinemas_info, width=800, height=400):
+    """show map with cinemas"""
     # Title before map
     st.markdown("<h1 style='text-align: center;'>Two cinemas near your show films you will love!</h1>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
@@ -243,7 +251,7 @@ def create_map(latitude, longitude, cinemas_info, width=800, height=400):
 
     # Add the CartoDB Positron tile layer
     folium.TileLayer('cartodbpositron').add_to(m)
-
+    print(f"lat:{latitude}, long:{longitude}")
     # Add a marker for your location
     folium.Marker(location=[latitude, longitude], popup='Your Location',
                   icon=folium.Icon(color='red')).add_to(m)
@@ -251,94 +259,73 @@ def create_map(latitude, longitude, cinemas_info, width=800, height=400):
     # Keep track of cinemas to avoid duplicates
     added_cinemas = set()
 
+    bounds = [[latitude, longitude]]
     # Add markers for each cinema
     for cinema in cinemas_info:
         cinema_key = (cinema['Cinema Latitude'], cinema['Cinema Longitude'])
         if cinema_key not in added_cinemas:
-            folium.Marker(location=[cinema['Cinema Latitude'], cinema['Cinema Longitude']],
+            location=[cinema['Cinema Latitude'], cinema['Cinema Longitude']]
+            folium.Marker(location,
                           popup=cinema['Cinema Name']).add_to(m)
             added_cinemas.add(cinema_key)
 
+
     # Calculate bounds of all markers
-    bounds = [[latitude, longitude]]
+    lati_bound, long_bound = ([latitude], [longitude])
     for cinema in cinemas_info:
-        bounds.append([cinema['Cinema Latitude'], cinema['Cinema Longitude']])
+        lati_bound.append(cinema['Cinema Latitude'])
+        long_bound.append(cinema['Cinema Longitude'])
 
     # Fit map to bounds
-    m.fit_bounds(bounds)
+    bounds = [[min(lati_bound), min(long_bound)], [max(lati_bound), max(long_bound)]]
+    print(f'bounds: {bounds}')
+    m.fit_bounds(bounds, padding=(20,20))
 
     # Display the map
     folium_static(m)
 
-def show_films_in_cinemas1(data):
+def get_valid_screenings(data: dict, film:dict):
     """
-    Show films of movies located closeby to browsers location
+    filter out screenings with missing data
     """
-    star = '\u2605'  # Unicode character for a star
+    valid_screenings=[]
+    for screening in data.get("showings", []):  # Handle incomplete or missing data["showings"]
+        if screening.get('Film Name') == film.get('Film Name'):
+            if all(screening.get(key) for key in ('Cinema Name', 'Cinema Address', 'Cinema Distance', 'Start Time')):
+                valid_screenings.insert(0,screening)
+    return valid_screenings
 
-    st.markdown("<p style='font-size: 24px; color: black;'>These films are showing tomorrow:</p>",
-                unsafe_allow_html=True)
+def display_screenings(valid_screenings:dict, film:dict):
+    """
+    show latest screening of a movie and other screenings in a dropdon menu
+    """
+    latest, other = (valid_screenings[0], valid_screenings[1:])
 
-    # Keep track of films already visualized
-    visualized_films = set()
+    cinema_name_html = f"<span style='font-size: 1.2em; margin-left: 100px;'>| {latest['Cinema Name']}</span> "
+    cinema_info_html = f"<span style='color: darkgrey; font-size: 0.8em;'>{latest.get('Cinema Address', '')} ‧ {latest['Cinema Distance']:.2f} meters</span>"
+    st.write(f"<div style='display: flex; justify-content: space-between;'>"
+                    f"{cinema_name_html}{cinema_info_html}"
+                    f"<div style='text-align: right;'>"
+                    f"{latest['Start Time']}"
+                    f"</div>"
+                    f"</div>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    # Iterate over films and visualize the first 5 unique films
-    for film in data["showings"]:
+    expander = st.expander("more showtimes", expanded=False)
+    for screening in other:  # Handle incomplete or missing data["showings"]
+        if screening.get('Film Name') == film.get('Film Name') and all(screening.get(key) for key in ('Cinema Name', 'Cinema Address', 'Cinema Distance', 'Start Time')):
+            # Display cinema name, address, distance aligned to left, with cinema name in a bigger font size and bold
+            cinema_name_html = f"<span style='font-size: 1.2em; margin-left: 100px;'>| {screening['Cinema Name']}</span> "
+            cinema_info_html = f"<span style='color: darkgrey; font-size: 0.8em;'>{screening.get('Cinema Address', '')} ‧ {screening['Cinema Distance']:.2f} meters</span>"
+            expander.write(f"<div style='display: flex; justify-content: space-between;'>"
+                    f"{cinema_name_html}{cinema_info_html}"
+                    f"<div style='text-align: right;'>"
+                    f"{screening['Start Time']}"
+                    f"</div>"
+                    f"</div>", unsafe_allow_html=True)
+            expander.markdown("<br>", unsafe_allow_html=True)
 
-        # Check if the film has already been visualized
-        if film['Film Name'] not in visualized_films:
-            # Add film to the set of visualized films
-            visualized_films.add(film['Film Name'])
-            filedir = os.path.dirname(os.path.abspath(__file__))
-
-            with open(os.path.join(filedir,'style.css'), encoding="utf-8") as f:
-                st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-            # Define layout
-            left_column, right_column = st.columns([1, 3])
-
-            # Display smaller image of the film on the left side
-            if "Poster" in film.keys() and film["Poster"]:
-                left_column.image(film["Poster"], width=100)
-
-            # Display other details on the right side
-            if ('Film Director'in film.keys()) and ('Film Name'in film.keys()):
-                right_column.write(f"<span style='color: darkgrey'>{film['Film Genre']}  ‧  {film['Film Rating']} {star}</span>",
-                               unsafe_allow_html=True)
-            if 'Film Duration' in film.keys():
-                right_column.write(f"<span style='color: darkgrey; margin-bottom: 10px'>{film['Film Duration']} minutes</span>",
-                               unsafe_allow_html=True)
-
-            # Add space between films
-            st.markdown("<br>", unsafe_allow_html=True)
-
-            if 'showings' in data.keys():
-                # Display screening information for this film
-                for screening in data["showings"]:
-                    if ('Film Name' in screening.keys()) and ('Cinema Name' in screening.keys()) and ('Cinema Address' in screening.keys()) and ('Cinema Distance'in screening.keys()):
-                        if screening['Film Name'] == film['Film Name']:
-                            # Display cinema name, address, distance aligned to left, with cinema name in a bigger font size and bold
-                            cinema_name_html = f"<span style='font-size: 1.2em; margin-left: 100px;'>| {screening['Cinema Name']}</span> "
-                            cinema_info_html = f"<span style='color: darkgrey; font-size: 0.8em;'>{screening.get('Cinema Address', '')} ‧ {screening['Cinema Distance']:.2f} meters</span>"
-                            st.write(f"<div style='display: flex; justify-content: space-between;'>"
-                                        f"{cinema_name_html}{cinema_info_html}"
-                                        f"<div style='text-align: right;'>"
-                                        f"{screening['Start Time']}"
-                                        f"</div>"
-                                        f"</div>", unsafe_allow_html=True)
-                            st.markdown("<br>", unsafe_allow_html=True)
-
-
-
-
-            # Add space between films
-            st.markdown("<br>", unsafe_allow_html=True)
-
-        # Check if 5 unique films have been visualized
-        if len(visualized_films) >= 5:
-            break
-
-def show_films_in_cinemas(data):
+def show_films_in_cinemas(data: dict):
     """
     Show films of movies located closeby to browsers location
     """
@@ -350,14 +337,14 @@ def show_films_in_cinemas(data):
     visualized_films = set()
 
     # Iterate over films and visualize the first 5 unique films
-    for film in data.get("showings", []):  # Handle incomplete or missing data["showings"]
+    for idx, film in enumerate(data.get("showings", []),start=1):  # Handle incomplete or missing data["showings"]
         if not film:
             pass
 
         # Check if the film has already been visualized
-        if film.get('Film Name') not in visualized_films:  # Use .get() to handle missing keys
+        if film['Film Name'] not in visualized_films:  # Use .get() to handle missing keys
             # Add film to the set of visualized films
-            visualized_films.add(film.get('Film Name'))
+            visualized_films.add(film['Film Name'])
 
             filedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -366,15 +353,19 @@ def show_films_in_cinemas(data):
 
             # Define layout
             left_column, right_column = st.columns([1, 3])
+
+            # Display recommendation just above the poster
+            left_column.write(f"<span style='font-size: 1.2em; font-weight: bold; color: darkgrey;'>#{idx}</span>", unsafe_allow_html=True)
 
             # Display smaller image of the film on the left side
             if film.get("Poster"):
                 left_column.image(film.get("Poster"), width=100)
 
+            if(film.get('Film Director') and film.get('Film Name')):
+                right_column.metric(film['Film Director'], film['Film Name'])
 
             # Display other details on the right side
             if film.get('Film Genre') and film.get('Film Rating'):
-                right_column.metric(film['Film Director'], film['Film Name'])
                 right_column.write(f"<span style='color: darkgrey'>{film['Film Genre']}  ‧  {film['Film Rating']} {star}</span>",
                                    unsafe_allow_html=True)
             if film.get('Film Duration'):
@@ -384,19 +375,8 @@ def show_films_in_cinemas(data):
             # Add space between films
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # Display screening information for this film
-            for screening in data.get("showings", []):  # Handle incomplete or missing data["showings"]
-                if screening.get('Film Name') == film.get('Film Name') and all(screening.get(key) for key in ('Cinema Name', 'Cinema Address', 'Cinema Distance', 'Start Time')):
-                    # Display cinema name, address, distance aligned to left, with cinema name in a bigger font size and bold
-                    cinema_name_html = f"<span style='font-size: 1.2em; margin-left: 100px;'>| {screening['Cinema Name']}</span> "
-                    cinema_info_html = f"<span style='color: darkgrey; font-size: 0.8em;'>{screening.get('Cinema Address', '')} ‧ {screening['Cinema Distance']:.2f} meters</span>"
-                    st.write(f"<div style='display: flex; justify-content: space-between;'>"
-                             f"{cinema_name_html}{cinema_info_html}"
-                             f"<div style='text-align: right;'>"
-                             f"{screening['Start Time']}"
-                             f"</div>"
-                             f"</div>", unsafe_allow_html=True)
-                    st.markdown("<br>", unsafe_allow_html=True)
+            valid_screenings= get_valid_screenings(data, film)
+            display_screenings(valid_screenings, film)
 
             # Add space between films
             st.markdown("<br>", unsafe_allow_html=True)
@@ -423,7 +403,7 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
     response = requests.post(API_ENDPOINT, json=payload, timeout=160)
 
     if response.status_code == 200:
-        #st.write(response.json())
+        st.write(response.json())
         pass
         #st.success("Data sent to API successfully!")
     else:
@@ -432,4 +412,10 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
     return response.json()
 
 if __name__ == "__main__":
-    main()
+    try:
+        with open('./REMOVE_TO_TESTapi_mock_response.json', encoding='utf-8') as json_file:
+            d = json.load(json_file)
+    except FileNotFoundError as error:
+        #print('No debug file found using production version')
+        d = None
+    main(d)
