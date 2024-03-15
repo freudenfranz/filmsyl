@@ -124,12 +124,12 @@ def get_recommendations(
 
         if(cine_recommendations):
             rec_titles = pd.DataFrame([rec['Film Name'] for rec in cine_recommendations])
-            cine_recs_in_db = imdb_df[imdb_df['primaryTitle'].isin(rec_titles[0])]
-            rich_recommends, not_found = enrich_recommendations(cine_recommendations, cine_recs_in_db)
-            recs_result = get_movie_recommendation(6, imdb_df=imdb_df, netflix_df=found, new_movies=cine_recs_in_db)
+            movies_in_cinemas_of_imdb_db = imdb_df[imdb_df['primaryTitle'].isin(rec_titles[0])]
+            imdb_only, recommended_movies_in_theater = get_movie_recommendation(10, imdb_df=imdb_df, netflix_df=found, new_movies=movies_in_cinemas_of_imdb_db)
+            rich_recommends, not_found = enrich_recommendations(cine_recommendations, recommended_movies_in_theater)
         else:
             rich_recommends= []
-            recs_result = []
+            imdb_only, recommended_movies_in_theater = ([], [])
             not_found = []
 
         #return all combined results
@@ -137,7 +137,7 @@ def get_recommendations(
         result = {
             "statistics": imdb_stats['statistics'],
             'matched_rows':imdb_stats['matched_rows'],
-            "recommendations": recs_result,
+            "recommendations": imdb_only,
             "showings": rich_recommends,
             "not_fonud_cine_recs": not_found
         }
