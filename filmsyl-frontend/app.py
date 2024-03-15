@@ -413,7 +413,7 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
             "lng": longitude,
             "countrycode": countrycode
         },
-        "cinemacount": 3,
+        "cinemacount": 10,
         "netflix": netflix_data
     }
     #print(f"Frontend: using payload {payload}")
@@ -421,7 +421,7 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
     response = requests.post(API_ENDPOINT, json=payload, timeout=160)
 
     if response.status_code == 200:
-        #st.write(response.json())
+        st.write(response.json())
         pass
         #st.success("Data sent to API successfully!")
     else:
