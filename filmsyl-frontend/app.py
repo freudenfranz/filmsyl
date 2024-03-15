@@ -419,7 +419,7 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
             "lng": longitude,
             "countrycode": countrycode
         },
-        "cinemacount": 1,
+        "cinemacount": 5,
         "netflix": netflix_data
     }
     #print(f"Frontend: using payload {payload}")
