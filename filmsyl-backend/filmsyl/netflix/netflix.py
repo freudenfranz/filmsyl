@@ -53,9 +53,8 @@ def get_user_stats(df):
 
     try:
         total_minutes_watched = pd.to_numeric(df['runtimeMinutes']).sum().item()
-        start_years = pd.to_numeric(df['startYear']).astype(int)
-        gr_filter = (pd.to_numeric(df['startYear']).astype(int)//10)*10
-        years_count = start_years.groupby(gr_filter).sum().to_list()
+        decades = pd.to_numeric(df['startYear']).astype(int)//10*10
+        years_count = decades.groupby(decades).count().to_dict()
     except:
         print('had a problem calculating total minutes or years count')
         total_minutes_watched = 0
@@ -68,7 +67,6 @@ def get_user_stats(df):
         'total_minutes_watched': total_minutes_watched,
         'years_count': years_count
     }
-
 
     return stats
 

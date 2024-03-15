@@ -60,7 +60,7 @@ def calculate_similarity(imdb_df, netflix_df):
 
     return imdb_df
 
-def get_movie_recommendation(amount: int, imdb_df, netflix_df, new_movies):
+def get_movie_recommendation(amount: int, imdb_df, netflix_df, new_movies)->dict:
     """
     Get movie recommendations based on IMDb and Netflix data.
 
@@ -79,20 +79,33 @@ def get_movie_recommendation(amount: int, imdb_df, netflix_df, new_movies):
     # Calculate similarity between IMDb and Netflix movies
     sorted_imdb_df = calculate_similarity(imdb_df, netflix_df)
 
-    # If new_movies list is empty, recommend top movies based on mean similarity
+
+    # If new_movies is empty, return only imdb_only
     if new_movies.empty:
-        return sorted_imdb_df.sort_values(by='mean_similarity', ascending=False)[['primaryTitle','runtimeMinutes','genres','averageRating','Director']].\
-            head(amount).\
-            to_dict(orient='records')
+        return (sorted_imdb_df.head(amount).to_dict(orient='records'), {})
+
+    # Filter out movies already in theaters from sorted_imdb_df
+    imdb_without_movies_in_theater = sorted_imdb_df[~sorted_imdb_df['primaryTitle'].isin(new_movies['primaryTitle'])]
+
+    # Select top movies from imdb_without_movies_in_theater
+    top_movies_df = imdb_without_movies_in_theater.sort_values(
+        by='mean_similarity', ascending=False
+    )[['primaryTitle', 'runtimeMinutes', 'genres', 'averageRating', 'Director']]
+    imdb_only = top_movies_df.head(amount).to_dict(orient='records')
+
 
     # Otherwise, recommend movies based on new_movies
     new_df = sorted_imdb_df[sorted_imdb_df['primaryTitle'].isin(new_movies['primaryTitle'])]
-    rec_df = new_df.sort_values(by='mean_similarity', ascending=False)[['primaryTitle','runtimeMinutes','genres','averageRating','Director']].head(amount)
+    rec_df = new_df.sort_values(
+        by='mean_similarity', ascending=False
+    )[['primaryTitle', 'startYear', 'runtimeMinutes', 'genres', 'titleId',
+       'title', 'averageRating', 'numVotes', 'Director', 'plot']]
 
-    index_dict = rec_df.to_dict(orient='records')
+    # Convert recommended movies to a dictionary
+    movies_in_theater = rec_df
 
-    return index_dict
-
+    # Return both imdb_only and movies_in_theater
+    return (imdb_only, movies_in_theater)
 
 if __name__ == "__main__":
     # Example usage
