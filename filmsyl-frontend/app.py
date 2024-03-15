@@ -197,7 +197,7 @@ def display_more_netflix_stats(stats):
         hours_watched = stats.get('total_minutes_watched', None)/60
     # Display centered title
     st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the message
-    st.header(f"You wached juicy {f'{int(hours_watched/24)} days and {int(hours_watched%24)} hours' if hours_watched > 24 else '{hours_watched}hours'} of movies from these decades:")
+    st.header(f"You wached a juicy {f'{int(hours_watched/24)} days and {int(hours_watched%24)} hours' if hours_watched > 24 else '{hours_watched}hours'} of movies from these decades:")
 
     # Filter the DataFrame to include only non-missing values in 'startYear' column
     years_seen_df = pd.DataFrame.from_dict(years_seen,orient='index')
