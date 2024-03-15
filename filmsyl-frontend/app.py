@@ -355,9 +355,11 @@ def show_films_in_cinemas(data: dict):
     # Keep track of films already visualized
     visualized_films = set()
 
+    jumps = int(0)
     # Iterate over films and visualize the first 5 unique films
     for idx, film in enumerate(data.get("showings", []),start=1):  # Handle incomplete or missing data["showings"]
         if not film:
+            jumps = jumps + 1
             pass
 
         # Check if the film has already been visualized
@@ -374,13 +376,15 @@ def show_films_in_cinemas(data: dict):
             left_column, right_column = st.columns([1, 3])
 
             # Display recommendation just above the poster
-            left_column.write(f"<span style='font-size: 1.2em; font-weight: bold; color: darkgrey;'>#{idx}</span>", unsafe_allow_html=True)
+            left_column.write(f"<span style='font-size: 1.2em; font-weight: bold; color: darkgrey;'>#{idx-jumps}</span>", unsafe_allow_html=True)
 
             # Display smaller image of the film on the left side
             if film.get("Poster"):
                 left_column.image(film.get("Poster"), width=100)
 
-            if(film.get('Film Director') and film.get('Film Name')):
+            if (not film.get("Film Director")) and film.get("Film Name"):
+                right_column.metric(" ",film['Film Name'])
+            elif(film.get('Film Director') and film.get('Film Name')):
                 right_column.metric(film['Film Director'], film['Film Name'])
 
             # Display other details on the right side
@@ -399,7 +403,8 @@ def show_films_in_cinemas(data: dict):
 
             # Add space between films
             st.markdown("<br>", unsafe_allow_html=True)
-
+        else:
+            jumps = jumps + 1
         # Check if 5 unique films have been visualized
         if len(visualized_films) >= 5:
             break
@@ -414,7 +419,7 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
             "lng": longitude,
             "countrycode": countrycode
         },
-        "cinemacount": 10,
+        "cinemacount": 1,
         "netflix": netflix_data
     }
     #print(f"Frontend: using payload {payload}")
@@ -432,9 +437,9 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
 
 if __name__ == "__main__":
     #try:
-     #   with open('./data/MrToreSuggestions.json', encoding='utf-8') as json_file:
-     #       d = json.load(json_file)
-    #except FileNotFoundError as error:
-        #print('No debug file found. Using production version')
-     #   d = None
+        #with open('./data/MrToreSuggestions.json', encoding='utf-8') as json_file:
+    #        d = json.load(json_file)
+   #except FileNotFoundError as error:
+     #   print('No debug file found. Using production version')
+      #  d = None
     main(None)
