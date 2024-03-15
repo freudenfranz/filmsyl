@@ -12,8 +12,8 @@ from streamlit_js_eval import get_geolocation
 import folium
 from streamlit_folium import folium_static
 
-API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
-#API_ENDPOINT = "https://films-you-like-2h7mcggcwa-ew.a.run.app/get-recommendations"
+#API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
+API_ENDPOINT = "https://films-you-like-2h7mcggcwa-ew.a.run.app/get-recommendations"
 #API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
@@ -202,7 +202,6 @@ def display_more_netflix_stats(stats):
     # Filter the DataFrame to include only non-missing values in 'startYear' column
     years_seen_df = pd.DataFrame.from_dict(years_seen,orient='index')
     st.bar_chart(years_seen_df)
-
 
 def display_movies_recommendations(recommendations:dict):
     """
@@ -421,7 +420,7 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
     response = requests.post(API_ENDPOINT, json=payload, timeout=160)
 
     if response.status_code == 200:
-        st.write(response.json())
+        #st.write(response.json())
         pass
         #st.success("Data sent to API successfully!")
     else:
@@ -430,10 +429,10 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
     return response.json()
 
 if __name__ == "__main__":
-    try:
-        with open('./REMOVE_TO_TESTapi_mock_response.json', encoding='utf-8') as json_file:
-            d = json.load(json_file)
-    except FileNotFoundError as error:
-        #print('No debug file found using production version')
-        d = None
-    main(d)
+    #try:
+     #   with open('./data/MrToreSuggestions.json', encoding='utf-8') as json_file:
+     #       d = json.load(json_file)
+    #except FileNotFoundError as error:
+        #print('No debug file found. Using production version')
+     #   d = None
+    main()#d)
