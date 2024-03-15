@@ -4,6 +4,7 @@ Frontend for 'films you like'
 import os
 import json
 import streamlit as st
+import time
 import matplotlib.pyplot as plt
 import pandas as pd
 import requests
@@ -25,21 +26,20 @@ def main(json_data):
     latitude, longitude, countrycode = get_and_display_geolocation(use_postdammer_platz=False)
 
     # Upload Netflix history
-    if not json_data:
-        df = upload_netflix_history(latitude, longitude)
 
-        # Process Netflix data
-        netflix_data = process_netflix_data(df)
+    df = upload_netflix_history(latitude, longitude)
 
-    if json_data or netflix_data :
+    # Process Netflix data
+    netflix_data = process_netflix_data(df)
+
+    if netflix_data :
         # Display a spinner while waiting for the API response
         st.markdown("<br><br><br>", unsafe_allow_html=True)  # Add some space before the spinner
         with st.spinner("We are trying to understand your weird taste..."):
             # Send data to API and get response
+            response = send_to_api(netflix_data, latitude, longitude, countrycode)
             if json_data:
                 response = json_data
-            else:
-                response = send_to_api(netflix_data, latitude, longitude, countrycode)
 
         # Display "scroll down" message
         display_scroll_down_message()
@@ -436,10 +436,11 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
     return response.json()
 
 if __name__ == "__main__":
-    #try:
-        #with open('./data/MrToreSuggestions.json', encoding='utf-8') as json_file:
-    #        d = json.load(json_file)
-   #except FileNotFoundError as error:
-     #   print('No debug file found. Using production version')
-      #  d = None
-    main(None)
+    try:
+        #data_strings = ['MrToreSuggestions','KatiesBroSuggestions', 'NicosNieceSuggestions']
+        with open('./data/KatiesBroSuggestions.json', encoding='utf-8') as json_file:
+            d = json.load(json_file)
+    except FileNotFoundError as error:
+        print('No debug file found. Using production version')
+        d = None
+    main(d)
