@@ -261,7 +261,7 @@ def display_movies_recommendations(recommendations:dict):
 def create_map(latitude, longitude, cinemas_info, width=800, height=400):
     """show map with cinemas"""
     # Title before map
-    st.markdown("<h1 style='text-align: center;'>Two cinemas near your show films you will love!</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>Cinemas near your show films you will love!</h1>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
     # Create a map centered around the provided latitude and longitude with custom width and height
