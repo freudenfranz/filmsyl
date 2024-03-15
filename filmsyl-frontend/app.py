@@ -435,4 +435,4 @@ if __name__ == "__main__":
     #except FileNotFoundError as error:
         #print('No debug file found. Using production version')
      #   d = None
-    main()#d)
+    main(None)
