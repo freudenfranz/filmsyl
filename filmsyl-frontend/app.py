@@ -14,7 +14,7 @@ from streamlit_folium import folium_static
 
 API_ENDPOINT = "https://films-you-like-dev-2h7mcggcwa-ew.a.run.app/get-recommendations"
 #API_ENDPOINT = "https://films-you-like-2h7mcggcwa-ew.a.run.app/get-recommendations"
-API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
+#API_ENDPOINT= "http://127.0.0.1:8000/get-recommendations"
 
 
 def main(json_data):
@@ -431,7 +431,7 @@ def send_to_api(netflix_data, latitude:float, longitude:float, countrycode):
 
 if __name__ == "__main__":
     try:
-        with open('./api_mock_response.json', encoding='utf-8') as json_file:
+        with open('./REMOVE_TO_TESTapi_mock_response.json', encoding='utf-8') as json_file:
             d = json.load(json_file)
     except FileNotFoundError as error:
         #print('No debug file found using production version')

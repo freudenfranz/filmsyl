@@ -7,4 +7,5 @@ pandas
 plotly
 streamlit_js_eval
 folium
+matplotlib
 streamlit_folium
